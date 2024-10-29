@@ -1,0 +1,37 @@
+app:
+  port: ${APP_PORT:8080}
+  logging: DEBUG
+  name: tesoreria-mercadopago-service
+  access-token: access-token
+
+server:
+  port: ${app.port}
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://eureka:@eureka-service:8761/eureka
+
+spring:
+  application:
+    name: ${app.name}
+
+logging:
+  level:
+    um.tesoreria.mercadopago.service: ${app.logging}
+    web: ${app.logging}
+    org:
+      springframework.cloud.config: ${app.logging}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
