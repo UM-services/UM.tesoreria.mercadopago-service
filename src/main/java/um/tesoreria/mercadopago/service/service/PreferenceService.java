@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.mercadopago.MercadoPagoConfig;
+import um.tesoreria.mercadopago.service.domain.dto.PaymentDto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class PreferenceService {
         MercadoPagoConfig.setAccessToken(accessToken);
 
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
+                .id("00001")
                 .title("Cuota")
                 .quantity(1)
                 .unitPrice(new BigDecimal(100))
@@ -71,6 +73,17 @@ public class PreferenceService {
             log.debug("MercadoPago Error -> {}", e.getMessage());
         }
         return "Preference created";
+    }
+
+    public String processPayment(PaymentDto payment) {
+
+        try {
+            log.debug("Payment -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(payment));
+        } catch (JsonProcessingException e) {
+            log.debug("Payment Error -> {}", e.getMessage());
+        }
+
+        return "Payment processed";
     }
 
 }

@@ -1,9 +1,8 @@
 package um.tesoreria.mercadopago.service.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import um.tesoreria.mercadopago.service.domain.dto.PaymentDto;
 import um.tesoreria.mercadopago.service.service.PreferenceService;
 
 @RestController
@@ -24,6 +23,11 @@ public class PreferenceController {
     @GetMapping("/create_preference")
     public ResponseEntity<String> createPreference() {
         return ResponseEntity.ok(service.createPreference());
+    }
+
+    @PostMapping("/payment")
+    public ResponseEntity<String> payment(@RequestBody PaymentDto payment) {
+        return ResponseEntity.ok(service.processPayment(payment));
     }
 
 }
