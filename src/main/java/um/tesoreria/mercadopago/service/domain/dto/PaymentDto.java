@@ -11,7 +11,7 @@ import java.time.OffsetDateTime;
 @Builder
 public class PaymentDto {
 
-    private Long id;
+    private String id;
 
     @JsonProperty("live_mode")
     private Boolean liveMode;
