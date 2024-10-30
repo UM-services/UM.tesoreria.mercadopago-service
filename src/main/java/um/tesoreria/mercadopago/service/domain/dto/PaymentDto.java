@@ -2,14 +2,19 @@ package um.tesoreria.mercadopago.service.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 
 @Data
 @Builder
-public class PaymentDto {
+@NoArgsConstructor
+@AllArgsConstructor
+public class PaymentDto implements Serializable {
 
     private String id;
 
