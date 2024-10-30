@@ -24,7 +24,7 @@ public class PaymentDto implements Serializable {
     private String type;
 
     @JsonProperty("date_created")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "UTC")
     private OffsetDateTime dateCreated;
 
     @JsonProperty("user_id")
