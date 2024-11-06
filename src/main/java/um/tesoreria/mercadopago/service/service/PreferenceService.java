@@ -2,9 +2,7 @@ package um.tesoreria.mercadopago.service.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.mercadopago.client.preference.PreferenceClient;
-import com.mercadopago.client.preference.PreferenceItemRequest;
-import com.mercadopago.client.preference.PreferenceRequest;
+import com.mercadopago.client.preference.*;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.preference.Preference;
@@ -38,6 +36,8 @@ public class PreferenceService {
                 .title("Cuota")
                 .quantity(1)
                 .unitPrice(new BigDecimal(100))
+                .categoryId("Arancel")
+                .currencyId("ARS")
                 .build();
         try {
             log.debug("ItemRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(itemRequest));
@@ -52,8 +52,23 @@ public class PreferenceService {
             log.debug("Item Requests Error -> {}", e.getMessage());
         }
 
+        PreferencePayerRequest payer = PreferencePayerRequest.builder()
+                .name("Daniel")
+                .surname("Quinteros")
+                .email("daniel.quinterospinto@gmail.com")
+                .build();
+
+        String externalReference = "0100100001011001";
+        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                .success("https://www.um.edu.ar")
+                .pending("https://www.um.edu.ar")
+                .failure("https://www.um.edu.ar")
+                .build();
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                 .items(itemRequests)
+                .payer(payer)
+                .backUrls(backUrls)
+                .externalReference(externalReference)
                 .build();
         try {
             log.debug("PreferenceRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preferenceRequest));
