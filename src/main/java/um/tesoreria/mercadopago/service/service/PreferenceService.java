@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.mercadopago.client.preference.*;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.mercadopago.MercadoPagoConfig;
-import um.tesoreria.mercadopago.service.domain.dto.PaymentDto;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -72,6 +72,7 @@ public class PreferenceService {
                 .backUrls(backUrls)
                 .externalReference(externalReference)
                 .notificationUrl(configurationUrl)
+                .expires(false)
                 .build();
         try {
             log.debug("PreferenceRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preferenceRequest));
@@ -93,8 +94,12 @@ public class PreferenceService {
         return "Preference created";
     }
 
-    public String processPayment(PaymentDto payment) {
-
+    public String processPayment(String xSignature, Payment payment) {
+        var signature = environment.getProperty("app.x-signature");
+        log.debug("xSignature -> {}", xSignature);
+        if (!signature.equals(xSignature)) {
+            throw new IllegalArgumentException("Invalid signature");
+        }
         try {
             log.debug("Payment -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(payment));
         } catch (JsonProcessingException e) {
