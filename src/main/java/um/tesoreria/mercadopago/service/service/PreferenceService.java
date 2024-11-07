@@ -29,6 +29,7 @@ public class PreferenceService {
     public String createPreference() {
         var accessToken = environment.getProperty("app.access-token");
         log.debug("Access Token -> {}", accessToken);
+        var configurationUrl = environment.getProperty("app.notification-url");
         MercadoPagoConfig.setAccessToken(accessToken);
 
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
@@ -36,8 +37,9 @@ public class PreferenceService {
                 .title("Cuota")
                 .quantity(1)
                 .unitPrice(new BigDecimal(100))
-                .categoryId("Arancel")
+                .categoryId("others")
                 .currencyId("ARS")
+                .description("Arancel")
                 .build();
         try {
             log.debug("ItemRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(itemRequest));
@@ -69,6 +71,7 @@ public class PreferenceService {
                 .payer(payer)
                 .backUrls(backUrls)
                 .externalReference(externalReference)
+                .notificationUrl(configurationUrl)
                 .build();
         try {
             log.debug("PreferenceRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preferenceRequest));
