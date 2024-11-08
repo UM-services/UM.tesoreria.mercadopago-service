@@ -7,13 +7,20 @@ import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.mercadopago.MercadoPagoConfig;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 
 @Service
@@ -30,6 +37,8 @@ public class PreferenceService {
         var accessToken = environment.getProperty("app.access-token");
         log.debug("Access Token -> {}", accessToken);
         var configurationUrl = environment.getProperty("app.notification-url");
+        log.debug("Configuration URL -> {}", configurationUrl);
+
         MercadoPagoConfig.setAccessToken(accessToken);
 
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
@@ -94,19 +103,99 @@ public class PreferenceService {
         return "Preference created";
     }
 
-    public String processPayment(String xSignature, Payment payment) {
-        var signature = environment.getProperty("app.x-signature");
-        log.debug("xSignature -> {}", xSignature);
-        if (!signature.equals(xSignature)) {
-            throw new IllegalArgumentException("Invalid signature");
+    public String processPayment(HttpServletRequest request, Payment payment) {
+        // Obtener el header x-signature y x-request-id
+        String xSignature = request.getHeader("x-signature");
+        String xRequestId = request.getHeader("x-request-id");
+
+        log.debug("Signature from MP -> {}", xSignature);
+
+        if (xSignature == null || xSignature.isEmpty()) {
+            log.error("Falta el header x-signature");
+            return "Falta el header x-signature";
         }
+
+        // Extraer ts y v1 del x-signature
+        String ts = null;
+        String v1 = null;
+        String[] parts = xSignature.split(",");
+        for (String part : parts) {
+            String[] keyValue = part.split("=", 2);
+            if (keyValue.length == 2) {
+                String key = keyValue[0].trim();
+                String value = keyValue[1].trim();
+                if ("ts".equals(key)) {
+                    ts = value;
+                } else if ("v1".equals(key)) {
+                    v1 = value;
+                }
+            }
+        }
+
+        if (ts == null || v1 == null) {
+            log.error("Formato inválido en el header x-signature");
+            return "Formato inválido en el header x-signature";
+        }
+
+        // Obtener data.id de los parámetros de la URL
+        String dataId = request.getParameter("data.id");
+        if (dataId == null || dataId.isEmpty()) {
+            log.error("Falta el parámetro data.id en la URL");
+            return "Falta el parámetro data.id en la URL";
+        }
+
+        if (xRequestId == null || xRequestId.isEmpty()) {
+            log.error("Falta el header x-request-id");
+            return "Falta el header x-request-id";
+        }
+
+        // Construir el template
+        String manifest = String.format("id:%s;request-id:%s;ts:%s;", dataId, xRequestId, ts);
+        log.debug("Manifest string: {}", manifest);
+
+        // Obtener la clave secreta
+        String secret = environment.getProperty("app.secret-key");
+        if (secret == null || secret.isEmpty()) {
+            log.error("Clave secreta no configurada");
+            return "Clave secreta no configurada";
+        }
+
+        // Generar el HMAC SHA256
         try {
-            log.debug("Payment -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(payment));
+            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
+            mac.init(secretKeySpec);
+            byte[] hmacData = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
+
+            // Convertir a cadena hexadecimal
+            String generatedSignature = HexFormat.of().formatHex(hmacData);
+            log.debug("Generated signature: {}", generatedSignature);
+
+            if (generatedSignature.equalsIgnoreCase(v1)) {
+                // Verificación exitosa
+                log.debug("HMAC verification passed");
+            } else {
+                // Verificación fallida
+                log.error("HMAC verification failed");
+                return "Verificación fallida";
+            }
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Error al generar la firma HMAC", e);
+            return "Error al procesar el pago";
+        }
+
+        // Procesar el pago
+        try {
+            String paymentJson = JsonMapper.builder()
+                    .findAndAddModules()
+                    .build()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(payment);
+            log.debug("Payment -> {}", paymentJson);
         } catch (JsonProcessingException e) {
-            log.debug("Payment Error -> {}", e.getMessage());
+            log.error("Payment Error -> {}", e.getMessage());
         }
 
         return "Payment processed";
     }
-
 }

@@ -4,7 +4,7 @@ app:
   name: tesoreria-mercadopago-service
   access-token: access-token
   notification-url: notification-url
-  x-signature: x-signature
+  secret-key: secret-key
 
 server:
   port: ${app.port}
