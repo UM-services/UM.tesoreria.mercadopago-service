@@ -42,7 +42,7 @@ public class PreferenceService {
         MercadoPagoConfig.setAccessToken(accessToken);
 
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
-                .id("00002")
+                .id("123456")
                 .title("Cuota")
                 .quantity(1)
                 .unitPrice(new BigDecimal(100))
@@ -69,7 +69,7 @@ public class PreferenceService {
                 .email("daniel.quinterospinto@gmail.com")
                 .build();
 
-        String externalReference = "0100100001011002";
+        String externalReference = "0100100001011003";
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                 .success("https://www.um.edu.ar")
                 .pending("https://www.um.edu.ar")
