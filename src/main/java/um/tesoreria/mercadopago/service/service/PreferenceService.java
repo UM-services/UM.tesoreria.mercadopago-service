@@ -114,7 +114,7 @@ public class PreferenceService {
         return "Preference created";
     }
 
-    public String processPayment(HttpServletRequest request, Payment payment) {
+    public String processPayment(HttpServletRequest request, Payment payment, String dataId) {
 
         // log del payment
         try {
@@ -162,7 +162,6 @@ public class PreferenceService {
         }
 
         // Obtener data.id del payment
-        String dataId = request.getParameter("data.id");
         if (dataId == null || dataId.isEmpty()) {
             log.error("Falta el parámetro data.id en la URL");
             return "Falta el parámetro data.id en la URL";
@@ -209,7 +208,7 @@ public class PreferenceService {
         }
 
         // Procesar el pago
-
+        log.debug("Payment processed");
         return "Payment processed";
     }
 }

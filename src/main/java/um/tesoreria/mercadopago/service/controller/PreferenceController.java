@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import um.tesoreria.mercadopago.service.service.PreferenceService;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/mercadopago/preference")
 public class PreferenceController {
@@ -27,8 +29,8 @@ public class PreferenceController {
     }
 
     @PostMapping("/payment")
-    public ResponseEntity<String> payment(HttpServletRequest request, @RequestBody Payment payment) {
-        return ResponseEntity.ok(service.processPayment(request, payment));
+    public ResponseEntity<String> payment(HttpServletRequest request, @RequestBody Payment payment, @RequestParam("data.id") String dataId) {
+        return ResponseEntity.ok(service.processPayment(request, payment, dataId));
     }
 
 }
