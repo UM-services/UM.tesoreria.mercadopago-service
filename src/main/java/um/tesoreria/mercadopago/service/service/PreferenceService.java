@@ -42,7 +42,7 @@ public class PreferenceService {
         MercadoPagoConfig.setAccessToken(accessToken);
 
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
-                .id("123456")
+                .id("item-id-123456")
                 .title("Cuota")
                 .quantity(1)
                 .unitPrice(new BigDecimal(100))
@@ -69,12 +69,22 @@ public class PreferenceService {
                 .email("daniel.quinterospinto@gmail.com")
                 .build();
 
-        String externalReference = "0100100001011003";
+        String externalReference = "0100100001011002";
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                 .success("https://www.um.edu.ar")
                 .pending("https://www.um.edu.ar")
                 .failure("https://www.um.edu.ar")
                 .build();
+        // Excluimos tarjetas de crédito
+        PreferencePaymentTypeRequest creditCard = PreferencePaymentTypeRequest.builder()
+                .id("credit_card")
+                .build();
+        List<PreferencePaymentTypeRequest> excludedPaymentTypes = new ArrayList<>();
+        excludedPaymentTypes.add(creditCard);
+        PreferencePaymentMethodsRequest paymentMethods = PreferencePaymentMethodsRequest.builder()
+                .excludedPaymentTypes(excludedPaymentTypes)
+                .build();
+        // Creamos el preference
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                 .items(itemRequests)
                 .payer(payer)
@@ -82,6 +92,7 @@ public class PreferenceService {
                 .externalReference(externalReference)
                 .notificationUrl(configurationUrl)
                 .expires(false)
+                .paymentMethods(paymentMethods)
                 .build();
         try {
             log.debug("PreferenceRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preferenceRequest));
@@ -104,6 +115,19 @@ public class PreferenceService {
     }
 
     public String processPayment(HttpServletRequest request, Payment payment) {
+
+        // log del payment
+        try {
+            String paymentJson = JsonMapper.builder()
+                    .findAndAddModules()
+                    .build()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(payment);
+            log.debug("Payment -> {}", paymentJson);
+        } catch (JsonProcessingException e) {
+            log.error("Payment Error -> {}", e.getMessage());
+        }
+
         // Obtener el header x-signature y x-request-id
         String xSignature = request.getHeader("x-signature");
         String xRequestId = request.getHeader("x-request-id");
@@ -138,10 +162,10 @@ public class PreferenceService {
         }
 
         // Obtener data.id del payment
-        Long dataId = payment.getId();
-        if (dataId == 0) {
-            log.error("Falta el parámetro dataId");
-            return "Falta el parámetro data.id";
+        String dataId = request.getParameter("data.id");
+        if (dataId == null || dataId.isEmpty()) {
+            log.error("Falta el parámetro data.id en la URL");
+            return "Falta el parámetro data.id en la URL";
         }
 
         if (xRequestId == null || xRequestId.isEmpty()) {
@@ -185,16 +209,6 @@ public class PreferenceService {
         }
 
         // Procesar el pago
-        try {
-            String paymentJson = JsonMapper.builder()
-                    .findAndAddModules()
-                    .build()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(payment);
-            log.debug("Payment -> {}", paymentJson);
-        } catch (JsonProcessingException e) {
-            log.error("Payment Error -> {}", e.getMessage());
-        }
 
         return "Payment processed";
     }
