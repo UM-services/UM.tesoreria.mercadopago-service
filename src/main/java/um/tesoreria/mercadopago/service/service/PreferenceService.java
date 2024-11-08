@@ -137,11 +137,11 @@ public class PreferenceService {
             return "Formato inválido en el header x-signature";
         }
 
-        // Obtener data.id de los parámetros de la URL
-        String dataId = request.getParameter("data.id");
-        if (dataId == null || dataId.isEmpty()) {
-            log.error("Falta el parámetro data.id en la URL");
-            return "Falta el parámetro data.id en la URL";
+        // Obtener data.id del payment
+        Long dataId = payment.getId();
+        if (dataId == 0) {
+            log.error("Falta el parámetro dataId");
+            return "Falta el parámetro data.id";
         }
 
         if (xRequestId == null || xRequestId.isEmpty()) {
