@@ -2,7 +2,9 @@ package um.tesoreria.mercadopago.service.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.preference.*;
+import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
@@ -12,10 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.mercadopago.MercadoPagoConfig;
+import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -28,12 +30,28 @@ import java.util.List;
 public class PreferenceService {
 
     private final Environment environment;
+    private final MercadoPagoCoreClient mercadoPagoCoreClient;
 
-    public PreferenceService(Environment environment) {
+    public PreferenceService(Environment environment,
+                             MercadoPagoCoreClient mercadoPagoCoreClient) {
         this.environment = environment;
+        this.mercadoPagoCoreClient = mercadoPagoCoreClient;
     }
 
-    public String createPreference() {
+    public String createPreference(Long chequeraCuotaId) {
+
+        var umPreferenceMPDto = mercadoPagoCoreClient.makeContext(chequeraCuotaId);
+        if (umPreferenceMPDto == null)  {
+            log.error("No se encontro el MercadoPagoContext con el chequeraCuotaId: {}", chequeraCuotaId);
+            return "No se encontro el MercadoPagoContext con el chequeraCuotaId: " + chequeraCuotaId;
+        }
+
+        try {
+            log.debug("UMPreferenceMPDto -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(umPreferenceMPDto));
+        } catch (JsonProcessingException e) {
+            log.debug("UMPreferenceMPDto Error -> {}", e.getMessage());
+        }
+
         var accessToken = environment.getProperty("app.access-token");
         log.debug("Access Token -> {}", accessToken);
         var configurationUrl = environment.getProperty("app.notification-url");
@@ -42,13 +60,13 @@ public class PreferenceService {
         MercadoPagoConfig.setAccessToken(accessToken);
 
         PreferenceItemRequest itemRequest = PreferenceItemRequest.builder()
-                .id("item-id-123456")
-                .title("Cuota")
+                .id("item-key-" + umPreferenceMPDto.getChequeraCuota().getFacultadId() + "-" + umPreferenceMPDto.getChequeraCuota().getTipoChequeraId() + "-" + umPreferenceMPDto.getChequeraCuota().getChequeraSerieId() + "-" + umPreferenceMPDto.getChequeraCuota().getProductoId() + "-" + umPreferenceMPDto.getChequeraCuota().getAlternativaId() + "-" + umPreferenceMPDto.getChequeraCuota().getCuotaId() + "-id-" + umPreferenceMPDto.getChequeraCuota().getChequeraCuotaId())
+                .title(umPreferenceMPDto.getChequeraCuota().getProducto().getNombre())
                 .quantity(1)
-                .unitPrice(new BigDecimal(100))
+                .unitPrice(umPreferenceMPDto.getMercadoPagoContext().getImporte())
                 .categoryId("others")
                 .currencyId("ARS")
-                .description("Arancel")
+                .description(umPreferenceMPDto.getChequeraCuota().getProducto().getNombre() + "-Periodo-" + umPreferenceMPDto.getChequeraCuota().getMes() + "-" + umPreferenceMPDto.getChequeraCuota().getAnho())
                 .build();
         try {
             log.debug("ItemRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(itemRequest));
@@ -64,17 +82,26 @@ public class PreferenceService {
         }
 
         PreferencePayerRequest payer = PreferencePayerRequest.builder()
-                .name("Daniel")
-                .surname("Quinteros")
-                .email("daniel.quinterospinto@gmail.com")
+                .name(umPreferenceMPDto.getChequeraCuota().getChequeraSerie().getPersona().getNombre())
+                .surname(umPreferenceMPDto.getChequeraCuota().getChequeraSerie().getPersona().getApellido())
+                .email(umPreferenceMPDto.getChequeraCuota().getChequeraSerie().getDomicilio().getEmailPersonal())
                 .build();
 
-        String externalReference = "0100100001011002";
+        String externalReference = String.format("%02d", umPreferenceMPDto.getChequeraCuota().getFacultadId())
+                + String.format("%03d", umPreferenceMPDto.getChequeraCuota().getTipoChequeraId())
+                + String.format("%05d", umPreferenceMPDto.getChequeraCuota().getChequeraSerieId())
+                + String.format("%02d", umPreferenceMPDto.getChequeraCuota().getProductoId())
+                + String.format("%02d", umPreferenceMPDto.getChequeraCuota().getAlternativaId())
+                + String.format("%04d", umPreferenceMPDto.getChequeraCuota().getCuotaId())
+                + "-" + umPreferenceMPDto.getChequeraCuota().getChequeraCuotaId()
+                + "-" + umPreferenceMPDto.getMercadoPagoContext().getMercadoPagoContextId();
+
         PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                 .success("https://www.um.edu.ar")
                 .pending("https://www.um.edu.ar")
                 .failure("https://www.um.edu.ar")
                 .build();
+
         // Excluimos tarjetas de crédito
         PreferencePaymentTypeRequest creditCard = PreferencePaymentTypeRequest.builder()
                 .id("credit_card")
@@ -91,7 +118,8 @@ public class PreferenceService {
                 .backUrls(backUrls)
                 .externalReference(externalReference)
                 .notificationUrl(configurationUrl)
-                .expires(false)
+                .expires(true)
+                .dateOfExpiration(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento())
                 .paymentMethods(paymentMethods)
                 .build();
         try {
@@ -101,114 +129,36 @@ public class PreferenceService {
         }
 
         PreferenceClient preferenceClient = new PreferenceClient();
+        Preference preference = null;
+        var mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
+
         try {
-            Preference preference = preferenceClient.create(preferenceRequest);
+            preference = preferenceClient.create(preferenceRequest);
+            mercadoPagoContext.setInitPoint(preference.getInitPoint());
             try {
-                log.debug("Preference -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preference));
+                var preferenceString = JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preference);
+                mercadoPagoContext.setPreference(preferenceString);
+                log.debug("Preference -> {}", preferenceString);
             } catch (JsonProcessingException e) {
                 log.debug("Preference Error -> {}", e.getMessage());
             }
+
+            mercadoPagoContext = mercadoPagoCoreClient.updateContext(mercadoPagoContext.getMercadoPagoContextId(), mercadoPagoContext);
+
         } catch (MPException | MPApiException e) {
             log.debug("MercadoPago Error -> {}", e.getMessage());
         }
-        return "Preference created";
-    }
 
-    public String processPayment(HttpServletRequest request, Payment payment, String dataId) {
-
-        // log del payment
+        String preferenceString = "";
+        String mercadoPagoContextString = "";
         try {
-            String paymentJson = JsonMapper.builder()
-                    .findAndAddModules()
-                    .build()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(payment);
-            log.debug("Payment -> {}", paymentJson);
+            preferenceString = JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preference);
+            mercadoPagoContextString = JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(mercadoPagoContext);
         } catch (JsonProcessingException e) {
-            log.error("Payment Error -> {}", e.getMessage());
+            log.debug("Preference Error -> {}", e.getMessage());
         }
 
-        // Obtener el header x-signature y x-request-id
-        String xSignature = request.getHeader("x-signature");
-        String xRequestId = request.getHeader("x-request-id");
-
-        log.debug("Signature from MP -> {}", xSignature);
-
-        if (xSignature == null || xSignature.isEmpty()) {
-            log.error("Falta el header x-signature");
-            return "Falta el header x-signature";
-        }
-
-        // Extraer ts y v1 del x-signature
-        String ts = null;
-        String v1 = null;
-        String[] parts = xSignature.split(",");
-        for (String part : parts) {
-            String[] keyValue = part.split("=", 2);
-            if (keyValue.length == 2) {
-                String key = keyValue[0].trim();
-                String value = keyValue[1].trim();
-                if ("ts".equals(key)) {
-                    ts = value;
-                } else if ("v1".equals(key)) {
-                    v1 = value;
-                }
-            }
-        }
-
-        if (ts == null || v1 == null) {
-            log.error("Formato inválido en el header x-signature");
-            return "Formato inválido en el header x-signature";
-        }
-
-        // Obtener data.id del payment
-        if (dataId == null || dataId.isEmpty()) {
-            log.error("Falta el parámetro data.id en la URL");
-            return "Falta el parámetro data.id en la URL";
-        }
-
-        if (xRequestId == null || xRequestId.isEmpty()) {
-            log.error("Falta el header x-request-id");
-            return "Falta el header x-request-id";
-        }
-
-        // Construir el template
-        String manifest = String.format("id:%s;request-id:%s;ts:%s;", dataId, xRequestId, ts);
-        log.debug("Manifest string: {}", manifest);
-
-        // Obtener la clave secreta
-        String secret = environment.getProperty("app.secret-key");
-        if (secret == null || secret.isEmpty()) {
-            log.error("Clave secreta no configurada");
-            return "Clave secreta no configurada";
-        }
-
-        // Generar el HMAC SHA256
-        try {
-            Mac mac = Mac.getInstance("HmacSHA256");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-            mac.init(secretKeySpec);
-            byte[] hmacData = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
-
-            // Convertir a cadena hexadecimal
-            String generatedSignature = HexFormat.of().formatHex(hmacData);
-            log.debug("Generated signature: {}", generatedSignature);
-
-            if (generatedSignature.equalsIgnoreCase(v1)) {
-                // Verificación exitosa
-                log.debug("HMAC verification passed");
-            } else {
-                // Verificación fallida
-                log.error("HMAC verification failed");
-                return "Verificación fallida";
-            }
-        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            log.error("Error al generar la firma HMAC", e);
-            return "Error al procesar el pago";
-        }
-
-        // Procesar el pago
-        log.debug("Payment processed");
-        return "Payment processed";
+        return "Preference created -> " + preferenceString + " MercadoPagoContext -> " + mercadoPagoContextString;
     }
+
 }

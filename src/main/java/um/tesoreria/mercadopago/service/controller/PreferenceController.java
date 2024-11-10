@@ -1,12 +1,8 @@
 package um.tesoreria.mercadopago.service.controller;
 
-import com.mercadopago.resources.payment.Payment;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import um.tesoreria.mercadopago.service.service.PreferenceService;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/mercadopago/preference")
@@ -23,14 +19,9 @@ public class PreferenceController {
         return ResponseEntity.ok("Test");
     }
 
-    @GetMapping("/create_preference")
-    public ResponseEntity<String> createPreference() {
-        return ResponseEntity.ok(service.createPreference());
-    }
-
-    @PostMapping("/payment")
-    public ResponseEntity<String> payment(HttpServletRequest request, @RequestBody Payment payment, @RequestParam("data.id") String dataId) {
-        return ResponseEntity.ok(service.processPayment(request, payment, dataId));
+    @GetMapping("/create_preference/{chequeraCuotaId}")
+    public ResponseEntity<String> createPreference(@PathVariable Long chequeraCuotaId) {
+        return ResponseEntity.ok(service.createPreference(chequeraCuotaId));
     }
 
 }
