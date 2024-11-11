@@ -3,6 +3,8 @@ app:
   logging: DEBUG
   name: tesoreria-mercadopago-service
   access-token: access-token
+  notification-url: notification-url
+  secret-key: secret-key
 
 server:
   port: ${app.port}
