@@ -1,11 +1,9 @@
 package um.tesoreria.mercadopago.service.controller;
 
+import com.mercadopago.resources.payment.Payment;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import um.tesoreria.mercadopago.service.service.PaymentService;
 
 @RestController
@@ -21,6 +19,11 @@ public class PaymentController {
     @PostMapping("/listener")
     public ResponseEntity<String> listener(HttpServletRequest request, @RequestParam("data.id") String dataId) {
         return ResponseEntity.ok(service.processPaymentWebhook(request, dataId));
+    }
+
+    @GetMapping("/update/{dataId}")
+    public ResponseEntity<Payment> update(@PathVariable String dataId) {
+        return ResponseEntity.ok(service.retrieveAndSavePayment(dataId));
     }
 
 }

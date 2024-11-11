@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
+import um.tesoreria.mercadopago.service.client.core.PagoClient;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 
 import javax.crypto.Mac;
@@ -37,9 +38,12 @@ public class PaymentService {
     private String accessToken;
 
     private final MercadoPagoCoreClient mercadoPagoCoreClient;
+    private final PagoClient pagoClient;
 
-    public PaymentService(MercadoPagoCoreClient mercadoPagoCoreClient) {
+    public PaymentService(MercadoPagoCoreClient mercadoPagoCoreClient,
+                          PagoClient pagoClient) {
         this.mercadoPagoCoreClient = mercadoPagoCoreClient;
+        this.pagoClient = pagoClient;
     }
 
     /**
@@ -77,6 +81,7 @@ public class PaymentService {
         }
 
         retrieveAndSavePayment(dataId);
+
         return "Payment processed";
     }
 
@@ -87,7 +92,7 @@ public class PaymentService {
      */
     public Payment retrieveAndSavePayment(String dataId) {
         PaymentClient client = new PaymentClient();
-        Payment payment = null;
+        Payment payment;
 
         try {
             MPRequestOptions requestOptions = MPRequestOptions.builder()
@@ -101,7 +106,11 @@ public class PaymentService {
             return null;
         }
 
-        return processPaymentContext(payment, dataId);
+        var context = processPaymentContext(payment, dataId);
+
+        pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
+
+        return payment;
     }
 
     private String validateHeaders(String xSignature, String xRequestId) {
@@ -168,7 +177,7 @@ public class PaymentService {
         }
     }
 
-    private Payment processPaymentContext(Payment payment, String dataId) {
+    private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
         if (payment == null) return null;
 
         String externalReference = payment.getExternalReference();
@@ -183,8 +192,7 @@ public class PaymentService {
             return null;
         }
 
-        updateMercadoPagoContext(mercadoPagoContext, payment, dataId);
-        return payment;
+        return updateMercadoPagoContext(mercadoPagoContext, payment, dataId);
     }
 
     private PaymentReferenceData parseExternalReference(String externalReference) {
@@ -202,7 +210,7 @@ public class PaymentService {
         return null;
     }
 
-    private void updateMercadoPagoContext(MercadoPagoContextDto context, Payment payment, String dataId) {
+    private MercadoPagoContextDto updateMercadoPagoContext(MercadoPagoContextDto context, Payment payment, String dataId) {
         context.setIdMercadoPago(dataId);
         try {
             String paymentString = JsonMapper.builder()
@@ -214,7 +222,9 @@ public class PaymentService {
         } catch (JsonProcessingException e) {
             log.error("PaymentString Error -> {}", e.getMessage());
         }
-        mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+        context.setImportePagado(payment.getTransactionDetails().getTotalPaidAmount());
+        context.setFechaPago(payment.getDateApproved());
+        return mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
     }
 
     private record SignatureComponents(String ts, String v1) {}
