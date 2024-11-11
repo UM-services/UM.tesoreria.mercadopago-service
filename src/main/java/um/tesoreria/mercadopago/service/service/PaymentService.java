@@ -108,7 +108,16 @@ public class PaymentService {
 
         var context = processPaymentContext(payment, dataId);
 
-        pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
+        if (Objects.equals(context.getStatus(), "approved")) {
+            var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
+            try {
+                log.debug("ChequeraPago -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(chequeraPago));
+            } catch (JsonProcessingException e) {
+                log.debug("ChequeraPago Error -> {}", e.getMessage());
+            }
+            context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
+            mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+        }
 
         return payment;
     }
@@ -224,6 +233,8 @@ public class PaymentService {
         }
         context.setImportePagado(payment.getTransactionDetails().getTotalPaidAmount());
         context.setFechaPago(payment.getDateApproved());
+        context.setFechaAcreditacion(payment.getMoneyReleaseDate());
+        context.setStatus(payment.getStatus());
         return mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
     }
 

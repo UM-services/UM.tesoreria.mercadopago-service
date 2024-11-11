@@ -119,7 +119,7 @@ public class PreferenceService {
                 .externalReference(externalReference)
                 .notificationUrl(configurationUrl)
                 .expires(true)
-                .dateOfExpiration(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento())
+                .expirationDateTo(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento())
                 .paymentMethods(paymentMethods)
                 .build();
         try {
