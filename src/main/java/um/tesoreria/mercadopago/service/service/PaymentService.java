@@ -119,6 +119,11 @@ public class PaymentService {
             mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
         }
 
+        if (context.getStatus().equals("approved") || context.getStatus().equals("rejected")) {
+            context.setActivo((byte) 0);
+            mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+        }
+
         return payment;
     }
 

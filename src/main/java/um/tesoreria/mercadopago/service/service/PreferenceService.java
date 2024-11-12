@@ -121,6 +121,7 @@ public class PreferenceService {
                 .expires(true)
                 .expirationDateTo(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento())
                 .paymentMethods(paymentMethods)
+                .binaryMode(true)
                 .build();
         try {
             log.debug("PreferenceRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preferenceRequest));
