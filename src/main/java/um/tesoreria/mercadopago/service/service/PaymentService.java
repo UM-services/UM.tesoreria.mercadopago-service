@@ -91,6 +91,7 @@ public class PaymentService {
      * @return El objeto Payment procesado
      */
     public Payment retrieveAndSavePayment(String dataId) {
+        log.debug("Processing retrieveAndSavePayment");
         PaymentClient client = new PaymentClient();
         Payment payment;
 
@@ -107,6 +108,7 @@ public class PaymentService {
         }
 
         var context = processPaymentContext(payment, dataId);
+        log.debug("Context processed - status: {}", context.getStatus());
 
         if (Objects.equals(context.getStatus(), "approved")) {
             var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
@@ -128,6 +130,7 @@ public class PaymentService {
     }
 
     private String validateHeaders(String xSignature, String xRequestId) {
+        log.debug("Processing validateHeaders");
         if (xSignature == null || xSignature.isEmpty()) {
             log.error("Falta el header x-signature");
             return "Falta el header x-signature";
@@ -140,6 +143,7 @@ public class PaymentService {
     }
 
     private SignatureComponents extractSignatureComponents(String xSignature) {
+        log.debug("Processing extractSignatureComponents");
         String ts = null;
         String v1 = null;
         String[] parts = xSignature.split(",");
@@ -160,10 +164,12 @@ public class PaymentService {
     }
 
     private String buildManifest(String dataId, String xRequestId, String ts) {
+        log.debug("Processing buildManifest");
         return String.format("id:%s;request-id:%s;ts:%s;", dataId, xRequestId, ts);
     }
 
     private boolean verifySignature(String manifest, String expectedSignature) {
+        log.debug("Processing verifySignature");
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
@@ -180,6 +186,7 @@ public class PaymentService {
     }
 
     private void logPayment(Payment payment) {
+        log.debug("Processing logPayment");
         try {
             log.debug("Payment -> {}", JsonMapper.builder()
                     .findAndAddModules()
@@ -191,7 +198,21 @@ public class PaymentService {
         }
     }
 
+    private void logMercadoPagoContext(MercadoPagoContextDto mercadoPagoContext) {
+        log.debug("Processing logMercadoPagoContext");
+        try {
+            log.debug("MercadoPagoContext -> {}", JsonMapper.builder()
+                    .findAndAddModules()
+                    .build()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(mercadoPagoContext));
+        } catch (JsonProcessingException e) {
+            log.error("MercadoPagoContext error {}", e.getMessage());
+        }
+    }
+
     private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
+        log.debug("Processing processPaymentContext");
         if (payment == null) return null;
 
         String externalReference = payment.getExternalReference();
@@ -200,6 +221,7 @@ public class PaymentService {
 
         MercadoPagoContextDto mercadoPagoContext = mercadoPagoCoreClient
                 .findContextByMercadoPagoContextId(referenceData.mercadoPagoContextId);
+        logMercadoPagoContext(mercadoPagoContext);
 
         if (!Objects.equals(mercadoPagoContext.getChequeraCuotaId(), referenceData.chequeraCuotaId)) {
             log.debug("Inconsistencia de chequeraCuotaId entre MPContext y payment");
@@ -210,11 +232,14 @@ public class PaymentService {
     }
 
     private PaymentReferenceData parseExternalReference(String externalReference) {
+        log.debug("Processing parseExternalReference");
         String[] parts = externalReference.split(EXTERNAL_REFERENCE_SEPARATOR);
         if (parts.length == EXPECTED_PARTS_LENGTH) {
             try {
                 Long chequeraCuotaId = Long.parseLong(parts[1]);
+                log.debug("PaymentReferenceData - ChequeraCuotaId -> {}", chequeraCuotaId);
                 Long mercadoPagoContextId = Long.parseLong(parts[2]);
+                log.debug("PaymentReferenceData - MercadoPagoContextId -> {}", mercadoPagoContextId);
                 return new PaymentReferenceData(chequeraCuotaId, mercadoPagoContextId);
             } catch (NumberFormatException e) {
                 log.error("Error parsing reference numbers: {}", e.getMessage());
@@ -225,6 +250,7 @@ public class PaymentService {
     }
 
     private MercadoPagoContextDto updateMercadoPagoContext(MercadoPagoContextDto context, Payment payment, String dataId) {
+        log.debug("Processing updateMercadoPagoContext");
         context.setIdMercadoPago(dataId);
         try {
             String paymentString = JsonMapper.builder()
@@ -240,7 +266,12 @@ public class PaymentService {
         context.setFechaPago(payment.getDateApproved());
         context.setFechaAcreditacion(payment.getMoneyReleaseDate());
         context.setStatus(payment.getStatus());
-        return mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+        log.debug("Antes");
+        logMercadoPagoContext(context);
+        context = mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+        log.debug("Después");
+        logMercadoPagoContext(context);
+        return context;
     }
 
     private record SignatureComponents(String ts, String v1) {}
