@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import um.tesoreria.mercadopago.service.service.PaymentService;
 
 @RestController
-@RequestMapping("/api/mercadopago/payment")
+@RequestMapping("/api/tesoreria/mercadopago/payment")
 public class PaymentController {
 
     private final PaymentService service;
