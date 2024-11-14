@@ -118,12 +118,12 @@ public class PaymentService {
                 log.debug("ChequeraPago Error -> {}", e.getMessage());
             }
             context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
-            mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+            mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
         }
 
         if (context.getStatus().equals("approved") || context.getStatus().equals("rejected")) {
             context.setActivo((byte) 0);
-            mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+            mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
         }
 
         return payment;
@@ -268,7 +268,7 @@ public class PaymentService {
         context.setStatus(payment.getStatus());
         log.debug("Antes");
         logMercadoPagoContext(context);
-        context = mercadoPagoCoreClient.updateContext(context.getMercadoPagoContextId(), context);
+        context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
         log.debug("Después");
         logMercadoPagoContext(context);
         return context;

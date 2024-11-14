@@ -146,7 +146,7 @@ public class PreferenceService {
                 log.debug("Preference Error -> {}", e.getMessage());
             }
 
-            mercadoPagoContext = mercadoPagoCoreClient.updateContext(mercadoPagoContext.getMercadoPagoContextId(), mercadoPagoContext);
+            mercadoPagoContext = mercadoPagoCoreClient.updateContext(mercadoPagoContext, mercadoPagoContext.getMercadoPagoContextId());
 
         } catch (MPException | MPApiException e) {
             log.debug("MercadoPago Error -> {}", e.getMessage());
