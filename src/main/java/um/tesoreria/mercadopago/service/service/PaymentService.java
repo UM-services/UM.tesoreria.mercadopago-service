@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 import um.tesoreria.mercadopago.service.client.core.PagoClient;
+import um.tesoreria.mercadopago.service.domain.dto.ChequeraPagoDto;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 
 import javax.crypto.Mac;
@@ -111,14 +112,7 @@ public class PaymentService {
         log.debug("Context processed - status: {}", context.getStatus());
 
         if (Objects.equals(context.getStatus(), "approved")) {
-            var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
-            try {
-                log.debug("ChequeraPago -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(chequeraPago));
-            } catch (JsonProcessingException e) {
-                log.debug("ChequeraPago Error -> {}", e.getMessage());
-            }
-            context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
-            mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
+            context = processApprovedPayment(context.getMercadoPagoContextId());
         }
 
         if (context.getStatus().equals("approved") || context.getStatus().equals("rejected")) {
@@ -127,6 +121,23 @@ public class PaymentService {
         }
 
         return payment;
+    }
+
+    /**
+     * Procesa un pago aprobado, registrando el pago en MercadoPago y actualizando el contexto
+     *
+     * @param mercadoPagoContextId   Se agrega para tener una función independiente
+     */
+    public MercadoPagoContextDto processApprovedPayment(Long mercadoPagoContextId) {
+        log.debug("Processing processApprovedPayment");
+        var context = mercadoPagoCoreClient.findContextByMercadoPagoContextId(mercadoPagoContextId);
+        logMercadoPagoContext(context);
+        var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
+        logChequeraPago(chequeraPago);
+        context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
+        context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
+        logMercadoPagoContext(context);
+        return context;
     }
 
     private String validateHeaders(String xSignature, String xRequestId) {
@@ -210,6 +221,21 @@ public class PaymentService {
             log.error("MercadoPagoContext error {}", e.getMessage());
         }
     }
+
+    private void logChequeraPago(ChequeraPagoDto chequeraPago) {
+        log.debug("Processing logChequeraPago");
+        try {
+            log.debug("ChequeraPago -> {}", JsonMapper.builder()
+                    .findAndAddModules()
+                    .build()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(chequeraPago));
+        } catch (JsonProcessingException e) {
+            log.error("ChequeraPago error {}", e.getMessage());
+        }
+    }
+
+
 
     private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
         log.debug("Processing processPaymentContext");

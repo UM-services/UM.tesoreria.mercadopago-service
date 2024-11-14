@@ -4,6 +4,7 @@ import com.mercadopago.resources.payment.Payment;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 import um.tesoreria.mercadopago.service.service.PaymentService;
 
 @RestController
@@ -24,6 +25,11 @@ public class PaymentController {
     @GetMapping("/update/{dataId}")
     public ResponseEntity<Payment> update(@PathVariable String dataId) {
         return ResponseEntity.ok(service.retrieveAndSavePayment(dataId));
+    }
+
+    @GetMapping("/process/payment/approved/{mercadoPagoContextId}")
+    public ResponseEntity<MercadoPagoContextDto> processPaymentApproved(@PathVariable Long mercadoPagoContextId) {
+        return ResponseEntity.ok(service.processApprovedPayment(mercadoPagoContextId));
     }
 
 }
