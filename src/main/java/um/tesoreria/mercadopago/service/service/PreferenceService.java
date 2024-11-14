@@ -2,27 +2,17 @@ package um.tesoreria.mercadopago.service.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.mercadopago.client.payment.PaymentClient;
 import com.mercadopago.client.preference.*;
-import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
-import com.mercadopago.resources.payment.Payment;
 import com.mercadopago.resources.preference.Preference;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.mercadopago.MercadoPagoConfig;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HexFormat;
 import java.util.List;
 
 @Service
@@ -50,6 +40,18 @@ public class PreferenceService {
             log.debug("UMPreferenceMPDto -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(umPreferenceMPDto));
         } catch (JsonProcessingException e) {
             log.debug("UMPreferenceMPDto Error -> {}", e.getMessage());
+        }
+
+        var mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
+        if (mercadoPagoContext != null && mercadoPagoContext.getInitPoint() != null) {
+            String mercadoPagoContextString = "";
+            try {
+                mercadoPagoContextString = JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(mercadoPagoContext);
+            } catch (JsonProcessingException e) {
+                log.debug("MercadoPagoContext Error -> {}", e.getMessage());
+            }
+            return " MercadoPagoContext -> " + mercadoPagoContextString;
+
         }
 
         var accessToken = environment.getProperty("app.access-token");
@@ -131,7 +133,7 @@ public class PreferenceService {
 
         PreferenceClient preferenceClient = new PreferenceClient();
         Preference preference = null;
-        var mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
+        mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
 
         try {
             preference = preferenceClient.create(preferenceRequest);

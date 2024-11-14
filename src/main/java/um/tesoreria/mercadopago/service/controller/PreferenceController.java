@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import um.tesoreria.mercadopago.service.service.PreferenceService;
 
 @RestController
-@RequestMapping("/api/mercadopago/preference")
+@RequestMapping("/api/tesoreria/mercadopago/preference")
 public class PreferenceController {
 
     private final PreferenceService service;
@@ -19,7 +19,7 @@ public class PreferenceController {
         return ResponseEntity.ok("Test");
     }
 
-    @GetMapping("/create_preference/{chequeraCuotaId}")
+    @GetMapping("/create/{chequeraCuotaId}")
     public ResponseEntity<String> createPreference(@PathVariable Long chequeraCuotaId) {
         return ResponseEntity.ok(service.createPreference(chequeraCuotaId));
     }
