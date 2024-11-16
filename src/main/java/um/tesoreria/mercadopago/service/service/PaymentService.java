@@ -235,8 +235,6 @@ public class PaymentService {
         }
     }
 
-
-
     private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
         log.debug("Processing processPaymentContext");
         if (payment == null) return null;
