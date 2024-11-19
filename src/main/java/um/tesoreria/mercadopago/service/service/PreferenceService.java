@@ -108,8 +108,13 @@ public class PreferenceService {
         PreferencePaymentTypeRequest creditCard = PreferencePaymentTypeRequest.builder()
                 .id("credit_card")
                 .build();
+        // Excluimos ticket (Rapipago, PagoFacil)
+        PreferencePaymentTypeRequest ticket = PreferencePaymentTypeRequest.builder()
+                .id("ticket")
+                .build();
         List<PreferencePaymentTypeRequest> excludedPaymentTypes = new ArrayList<>();
         excludedPaymentTypes.add(creditCard);
+        excludedPaymentTypes.add(ticket);
         PreferencePaymentMethodsRequest paymentMethods = PreferencePaymentMethodsRequest.builder()
                 .excludedPaymentTypes(excludedPaymentTypes)
                 .build();
@@ -124,6 +129,7 @@ public class PreferenceService {
                 .expirationDateTo(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento())
                 .paymentMethods(paymentMethods)
                 .binaryMode(true)
+                .statementDescriptor("UNIVMENDOZA")
                 .build();
         try {
             log.debug("PreferenceRequest -> {}", JsonMapper.builder().findAndAddModules().build().writerWithDefaultPrettyPrinter().writeValueAsString(preferenceRequest));
