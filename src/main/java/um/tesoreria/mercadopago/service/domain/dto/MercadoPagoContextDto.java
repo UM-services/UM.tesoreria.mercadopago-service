@@ -22,6 +22,8 @@ public class MercadoPagoContextDto {
     private OffsetDateTime fechaVencimiento;
     
     private BigDecimal importe = BigDecimal.ZERO;
+    private Byte changed = 0;
+    private String preferenceId;
     private String preference;
     private Byte activo = 0;
     private Long chequeraPagoId;
