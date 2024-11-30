@@ -13,6 +13,7 @@ import com.mercadopago.MercadoPagoConfig;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
+import um.tesoreria.mercadopago.service.util.DateToolMP;
 
 import java.util.List;
 
@@ -68,6 +69,7 @@ public class PreferenceService {
 
     private PreferenceRequest buildPreferenceRequest(List<PreferenceItemRequest> itemRequests, PreferencePayerRequest payer, PreferenceBackUrlsRequest backUrls, String externalReference, PreferencePaymentMethodsRequest paymentMethods, UMPreferenceMPDto umPreferenceMPDto) {
         log.debug("Processing buildPreferenceRequest");
+        var fechaVencimientoMP = DateToolMP.convertToMPDate(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento());
         return PreferenceRequest.builder()
                 .items(itemRequests)
                 .payer(payer)
@@ -75,7 +77,7 @@ public class PreferenceService {
                 .externalReference(externalReference)
                 .notificationUrl(environment.getProperty("app.notification-url"))
                 .expires(true)
-                .expirationDateTo(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento().plusHours(3))
+                .expirationDateTo(fechaVencimientoMP)
                 .paymentMethods(paymentMethods)
                 .binaryMode(true)
                 .statementDescriptor("UNIVMENDOZA")
@@ -90,7 +92,7 @@ public class PreferenceService {
         if (preference == null) return null;
 
         // Actualizar la fecha de vencimiento y el importe
-        var fechaVencimiento = mercadoPagoContext.getFechaVencimiento();
+        var fechaVencimientoMP = DateToolMP.convertToMPDate(mercadoPagoContext.getFechaVencimiento());
         var importe = mercadoPagoContext.getImporte();
 
         // Crea nuevo itemRequest con los valores actualizados
@@ -121,7 +123,7 @@ public class PreferenceService {
                 .externalReference(preference.getExternalReference()) // Mantener la referencia externa
                 .notificationUrl(preference.getNotificationUrl()) // Mantener la URL de notificación
                 .expires(true)
-                .expirationDateTo(fechaVencimiento.plusHours(3)) // Actualizar la fecha de vencimiento
+                .expirationDateTo(fechaVencimientoMP) // Actualizar la fecha de vencimiento
                 .paymentMethods(createPaymentMethodsRequest()) // Mantener los métodos de pago
                 .binaryMode(preference.getBinaryMode()) // Mantener el modo binario
                 .statementDescriptor(preference.getStatementDescriptor()) // Mantener el descriptor de estado
