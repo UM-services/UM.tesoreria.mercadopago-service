@@ -22,14 +22,9 @@ public class CheckingController {
         return ResponseEntity.ok(service.checkingCuota(chequeraCuotaId));
     }
 
-    @GetMapping("/extract/preference/{mercadoPagoContextId}")
-    public ResponseEntity<Boolean> extractPreference(@PathVariable Long mercadoPagoContextId) {
-        return ResponseEntity.ok(service.extractPreference(mercadoPagoContextId));
-    }
-
-    @GetMapping("/extract/preference/all")
-    public ResponseEntity<Boolean> extractPreferenceAll() {
-        return ResponseEntity.ok(service.extractPreferenceAll());
+    @GetMapping("/all/active")
+    public ResponseEntity<String> checkingAllActive() {
+        return ResponseEntity.ok(service.checkingAllActive());
     }
 
 }
