@@ -11,8 +11,8 @@ public class DateToolMP {
         log.debug("Processing convertToMPDate");
         log.debug("Original Date -> {}", date);
 
-        // Agrega 27 horas al OffsetDateTime original
-        var dateMP = date.plusHours(27);
+        // Agrega 30 horas al OffsetDateTime original
+        var dateMP = date.plusHours(30);
         log.debug("Offset Date -> {}", dateMP);
 
         return dateMP;
