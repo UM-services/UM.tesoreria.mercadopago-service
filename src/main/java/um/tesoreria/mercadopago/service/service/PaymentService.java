@@ -286,7 +286,7 @@ public class PaymentService {
         } catch (JsonProcessingException e) {
             log.error("PaymentString Error -> {}", e.getMessage());
         }
-        context.setImportePagado(payment.getTransactionDetails().getTotalPaidAmount());
+        context.setImportePagado(payment.getTransactionAmount());
         context.setFechaPago(payment.getDateApproved());
         context.setFechaAcreditacion(payment.getMoneyReleaseDate());
         context.setStatus(payment.getStatus());
