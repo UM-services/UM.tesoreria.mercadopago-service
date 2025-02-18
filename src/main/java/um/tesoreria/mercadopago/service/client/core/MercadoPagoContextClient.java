@@ -1,7 +1,6 @@
 package um.tesoreria.mercadopago.service.client.core;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
@@ -19,5 +18,8 @@ public interface MercadoPagoContextClient {
 
     @GetMapping("/all/active/cuota/id")
     List<Long> findAllActiveChequeraCuota();
+
+    @GetMapping("/pagos/sin/imputar")
+    List<MercadoPagoContextDto> findAllSinImputar();
 
 }

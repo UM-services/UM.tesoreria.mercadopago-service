@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import um.tesoreria.mercadopago.service.client.core.MercadoPagoContextClient;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 import um.tesoreria.mercadopago.service.client.core.PagoClient;
 import um.tesoreria.mercadopago.service.domain.dto.ChequeraPagoDto;
@@ -31,6 +32,7 @@ public class PaymentService {
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String EXTERNAL_REFERENCE_SEPARATOR = "-";
     private static final int EXPECTED_PARTS_LENGTH = 3;
+    private final MercadoPagoContextClient mercadoPagoContextClient;
 
     @Value("${app.secret-key}")
     private String secretKey;
@@ -42,9 +44,10 @@ public class PaymentService {
     private final PagoClient pagoClient;
 
     public PaymentService(MercadoPagoCoreClient mercadoPagoCoreClient,
-                          PagoClient pagoClient) {
+                          PagoClient pagoClient, MercadoPagoContextClient mercadoPagoContextClient) {
         this.mercadoPagoCoreClient = mercadoPagoCoreClient;
         this.pagoClient = pagoClient;
+        this.mercadoPagoContextClient = mercadoPagoContextClient;
     }
 
     /**
@@ -88,7 +91,7 @@ public class PaymentService {
 
     /**
      * Recupera y guarda la información del pago
-     * @param dataId ID del pago en MercadoPago
+     * @param dataId id del pago en MercadoPago
      * @return El objeto Payment procesado
      */
     public Payment retrieveAndSavePayment(String dataId) {
@@ -109,6 +112,7 @@ public class PaymentService {
         }
 
         var context = processPaymentContext(payment, dataId);
+        assert context != null;
         log.debug("Context processed - status: {}", context.getStatus());
 
         if (Objects.equals(context.getStatus(), "approved")) {
@@ -138,6 +142,18 @@ public class PaymentService {
         context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
         logMercadoPagoContext(context);
         return context;
+    }
+
+    /**
+     * Procesa pagos aprobados sin chequeraPago
+     */
+    public void fixPaymentApprovedWithoutChequeraPago() {
+        log.debug("Processing PaymentService.fixPaymentApprovedWithoutChequeraPago");
+        var pagosSinImputar = mercadoPagoContextClient.findAllSinImputar();
+        pagosSinImputar.forEach(pago -> {
+            logMercadoPagoContext(pago);
+            this.processApprovedPayment(pago.getMercadoPagoContextId());
+        });
     }
 
     private String validateHeaders(String xSignature, String xRequestId) {
