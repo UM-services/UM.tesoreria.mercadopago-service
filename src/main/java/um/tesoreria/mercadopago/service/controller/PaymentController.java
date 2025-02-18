@@ -32,4 +32,10 @@ public class PaymentController {
         return ResponseEntity.ok(service.processApprovedPayment(mercadoPagoContextId));
     }
 
+    @GetMapping("/fix/payment/approved/without/chequera/pago")
+    public ResponseEntity<Void> fixPaymentApprovedWithoutChequeraPago() {
+        service.fixPaymentApprovedWithoutChequeraPago();
+        return ResponseEntity.ok().build();
+    }
+
 }
