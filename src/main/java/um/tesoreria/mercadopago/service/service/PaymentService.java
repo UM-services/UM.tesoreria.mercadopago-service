@@ -95,7 +95,7 @@ public class PaymentService {
      * @return El objeto Payment procesado
      */
     public Payment retrieveAndSavePayment(String dataId) {
-        log.debug("Processing retrieveAndSavePayment");
+        log.debug("Processing PaymentService.retrieveAndSavePayment");
         PaymentClient client = new PaymentClient();
         Payment payment;
 
@@ -252,7 +252,7 @@ public class PaymentService {
     }
 
     private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
-        log.debug("Processing processPaymentContext");
+        log.debug("Processing PaymentService.processPaymentContext");
         if (payment == null) return null;
 
         String externalReference = payment.getExternalReference();
@@ -290,7 +290,7 @@ public class PaymentService {
     }
 
     private MercadoPagoContextDto updateMercadoPagoContext(MercadoPagoContextDto context, Payment payment, String dataId) {
-        log.debug("Processing updateMercadoPagoContext");
+        log.debug("Processing PaymentService.updateMercadoPagoContext");
         context.setIdMercadoPago(dataId);
         try {
             String paymentString = JsonMapper.builder()
@@ -306,10 +306,10 @@ public class PaymentService {
         context.setFechaPago(payment.getDateApproved());
         context.setFechaAcreditacion(payment.getMoneyReleaseDate());
         context.setStatus(payment.getStatus());
-        log.debug("Antes");
+        log.debug("PaymentService.updateMercadoPagoContext.before");
         logMercadoPagoContext(context);
         context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
-        log.debug("Después");
+        log.debug("PaymentService.updateMercadoPagoContext.after");
         logMercadoPagoContext(context);
         return context;
     }
