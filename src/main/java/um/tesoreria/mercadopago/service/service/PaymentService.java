@@ -95,7 +95,7 @@ public class PaymentService {
      * @return El objeto Payment procesado
      */
     public Payment retrieveAndSavePayment(String dataId) {
-        log.debug("Processing PaymentService.retrieveAndSavePayment");
+        log.debug("Processing PaymentService.retrieveAndSavePayment for {}", dataId);
         PaymentClient client = new PaymentClient();
         Payment payment;
 
@@ -107,7 +107,7 @@ public class PaymentService {
             payment = client.get(Long.parseLong(dataId), requestOptions);
             logPayment(payment);
         } catch (MPException | MPApiException e) {
-            log.error("Error getting payment: {}", e.getMessage());
+            log.debug("Error getting payment for {}: {}", dataId, e.getMessage());
             return null;
         }
 
