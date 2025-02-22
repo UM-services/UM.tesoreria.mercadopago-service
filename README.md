@@ -3,6 +3,10 @@
 [![UM.tesoreria.mercadopago-service CI](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
 [![Deploy GitHub Pages](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml)
 
+## Autor ✍️
+
+- Daniel Quinteros
+
 ## Descripción
 
 Servicio de integración con MercadoPago para la arquitectura de microservicios de UM Tesorería. Este servicio proporciona funcionalidades para:
@@ -27,15 +31,23 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 ## Tecnologías
 
 - Java 21
-- Spring Boot 3.4.2
+- Spring Boot 3.4.3
 - Spring Cloud 2024.0.0
 - MercadoPago SDK Java 2.1.29
+- Caffeine (para caché)
+- Springdoc OpenAPI (Swagger UI)
 
 ## Configuración
 
 El servicio requiere las siguientes variables de entorno:
 - `MERCADOPAGO_ACCESS_TOKEN`: Token de acceso de MercadoPago
 - `MERCADOPAGO_WEBHOOK_URL`: URL para webhooks de MercadoPago
+
+## Endpoints
+
+La documentación de los endpoints está disponible en:
+- Swagger UI: `/swagger-ui.html`
+- OpenAPI JSON: `/v3/api-docs`
 
 ## Desarrollo
 
@@ -44,6 +56,12 @@ Para ejecutar el servicio localmente:
 ```bash
 mvn spring-boot:run
 ```
+
+### Requisitos
+
+- Java 21
+- Maven 3.9+
+- Token de acceso de MercadoPago
 
 ## CI/CD
 
