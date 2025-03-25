@@ -234,7 +234,8 @@ public class PreferenceService {
         log.debug("Processing createPaymentMethodsRequest");
         List<PreferencePaymentTypeRequest> excludedPaymentTypes = List.of(
                 PreferencePaymentTypeRequest.builder().id("credit_card").build(),
-                PreferencePaymentTypeRequest.builder().id("ticket").build()
+                PreferencePaymentTypeRequest.builder().id("ticket").build(),
+                PreferencePaymentTypeRequest.builder().id("prepaid_card").build()
         );
         return PreferencePaymentMethodsRequest.builder()
                 .excludedPaymentTypes(excludedPaymentTypes)
