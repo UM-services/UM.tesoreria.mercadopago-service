@@ -31,17 +31,18 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 ## Tecnologías
 
 - Java 21
-- Spring Boot 3.4.3
-- Spring Cloud 2024.0.0
+- Spring Boot 3.4.4
+- Spring Cloud 2024.0.1
 - MercadoPago SDK Java 2.1.29
 - Caffeine (para caché)
-- Springdoc OpenAPI (Swagger UI)
+- Springdoc OpenAPI 2.8.6 (Swagger UI)
 
 ## Configuración
 
 El servicio requiere las siguientes variables de entorno:
 - `MERCADOPAGO_ACCESS_TOKEN`: Token de acceso de MercadoPago
 - `MERCADOPAGO_WEBHOOK_URL`: URL para webhooks de MercadoPago
+- `APP_SECRET_KEY`: Clave secreta para validación de webhooks
 
 ## Endpoints
 
@@ -69,3 +70,14 @@ El proyecto utiliza GitHub Actions para:
 - Compilación y pruebas continuas
 - Generación y despliegue automático de documentación
 - Actualización automática de la wiki del proyecto
+
+## Métodos de Pago
+
+El servicio acepta los siguientes métodos de pago:
+- Transferencias bancarias
+- Pago en efectivo
+
+Los siguientes métodos están excluidos:
+- Tarjetas de crédito
+- Tarjetas prepagas
+- Pagos con ticket
