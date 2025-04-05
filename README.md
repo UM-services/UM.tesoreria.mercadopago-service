@@ -3,6 +3,13 @@
 [![UM.tesoreria.mercadopago-service CI](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
 [![Deploy GitHub Pages](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml)
 
+[![Java](https://img.shields.io/badge/Java-21-red?logo=java)](https://www.java.com)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
+[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2024.0.1-blue?logo=spring)](https://spring.io/projects/spring-cloud)
+[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.2.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.6-green?logo=openapi-initiative)](https://www.openapis.org/)
+[![Maven](https://img.shields.io/badge/Maven-3.9+-purple?logo=apache-maven)](https://maven.apache.org/)
+
 ## Autor ✍️
 
 - Daniel Quinteros
@@ -33,7 +40,7 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 - Java 21
 - Spring Boot 3.4.4
 - Spring Cloud 2024.0.1
-- MercadoPago SDK Java 2.1.29
+- MercadoPago SDK Java 2.2.0
 - Caffeine (para caché)
 - Springdoc OpenAPI 2.8.6 (Swagger UI)
 
