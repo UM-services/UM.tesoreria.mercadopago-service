@@ -1,5 +1,6 @@
 package um.tesoreria.mercadopago.service.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,6 +17,12 @@ import org.springframework.security.config.Customizer;
 @EnableWebSecurity
 public class SwaggerSecurityConfig {
 
+    @Value("${app.swagger.username}")
+    private String username;
+
+    @Value("${app.swagger.password}")
+    private String password;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -31,8 +38,8 @@ public class SwaggerSecurityConfig {
     @Bean
     public InMemoryUserDetailsManager userDetailsService() {
         UserDetails user = User.builder()
-            .username("tesoreria")
-            .password(passwordEncoder().encode("tesoreria"))
+            .username(username)
+            .password(passwordEncoder().encode(password))
             .roles("ADMIN")
             .build();
         return new InMemoryUserDetailsManager(user);
