@@ -5,6 +5,9 @@ app:
   access-token: access-token
   notification-url: notification-url
   secret-key: secret-key
+  swagger:
+    username: ${APP_SWAGGER_USERNAME:tesoreria}
+    password: ${APP_SWAGGER_PASSWORD:tesoreria}
 
 server:
   port: ${app.port}
