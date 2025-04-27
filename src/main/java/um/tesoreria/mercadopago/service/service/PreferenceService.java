@@ -275,7 +275,7 @@ public class PreferenceService {
         }
         return PreferencePaymentMethodsRequest.builder()
                 .excludedPaymentTypes(excludedPaymentTypes)
-                .defaultPaymentMethodId("credit_card")
+                .defaultPaymentMethodId(tipoChequeraContext.getDefaultPaymentMethodId())
                 .installments(tipoChequeraContext.getInstallments())
                 .defaultInstallments(tipoChequeraContext.getDefaultInstallments())
                 .build();
@@ -291,7 +291,7 @@ public class PreferenceService {
     }
 
     private String createAndLogPreference(PreferenceRequest preferenceRequest, MercadoPagoContextDto mercadoPagoContext, UMPreferenceMPDto umPreferenceMPDto) {
-        log.debug("Processing createAndLogPreference");
+        log.debug("Processing PreferenceService.createAndLogPreference");
         Preference preference = null;
 
         try {
@@ -300,8 +300,15 @@ public class PreferenceService {
             mercadoPagoContext.setPreferenceId(preference.getId());
             mercadoPagoContext.setPreference(logPreference(preference));
             mercadoPagoCoreClient.updateContext(mercadoPagoContext, mercadoPagoContext.getMercadoPagoContextId());
-        } catch (MPException | MPApiException e) {
-            log.debug("MercadoPago Error -> {}", e.getMessage());
+        } catch (MPApiException e) {
+            log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}", 
+                e.getStatusCode(), 
+                e.getMessage(),
+                e.getApiResponse() != null ? e.getApiResponse().getContent() : "No response content");
+            log.error("Request details -> {}", preferenceRequest);
+        } catch (MPException e) {
+            log.error("MercadoPago General Error -> {}", e.getMessage());
+            log.error("Request details -> {}", preferenceRequest);
         }
 
         return logFinalPreference(preference, mercadoPagoContext);
