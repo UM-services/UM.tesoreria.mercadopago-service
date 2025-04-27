@@ -29,10 +29,4 @@ public class CheckingController {
         return ResponseEntity.ok(service.checkingAllActive());
     }
 
-    @GetMapping("/11/12/2024")
-    public ResponseEntity<Void> checking_2024_11_12() {
-        service.checking_2024_11_12();
-        return ResponseEntity.ok().build();
-    }
-
 }
