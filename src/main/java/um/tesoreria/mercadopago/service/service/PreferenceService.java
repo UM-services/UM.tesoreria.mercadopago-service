@@ -10,12 +10,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import com.mercadopago.MercadoPagoConfig;
+import um.tesoreria.mercadopago.service.client.core.ChequeraCuotaClient;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
+import um.tesoreria.mercadopago.service.client.core.TipoChequeraMercadoPagoCreditCardClient;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
+import um.tesoreria.mercadopago.service.domain.dto.TipoChequeraMercadoPagoCreditCardDto;
 import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
 import um.tesoreria.mercadopago.service.util.DateToolMP;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -24,12 +29,17 @@ public class PreferenceService {
     private final Environment environment;
     private final MercadoPagoCoreClient mercadoPagoCoreClient;
     private final PreferenceClient preferenceClient;
+    private final TipoChequeraMercadoPagoCreditCardClient tipoChequeraMercadoPagoCreditCardClient;
+    private final ChequeraCuotaClient chequeraCuotaClient;
 
     public PreferenceService(Environment environment,
-                             MercadoPagoCoreClient mercadoPagoCoreClient) {
+                             MercadoPagoCoreClient mercadoPagoCoreClient,
+                             TipoChequeraMercadoPagoCreditCardClient tipoChequeraMercadoPagoCreditCardClient, ChequeraCuotaClient chequeraCuotaClient) {
         this.environment = environment;
         this.mercadoPagoCoreClient = mercadoPagoCoreClient;
+        this.tipoChequeraMercadoPagoCreditCardClient = tipoChequeraMercadoPagoCreditCardClient;
         this.preferenceClient = new PreferenceClient();
+        this.chequeraCuotaClient = chequeraCuotaClient;
     }
 
     public String createPreference(Long chequeraCuotaId) {
@@ -48,40 +58,12 @@ public class PreferenceService {
             }
             return " MercadoPagoContext -> " + logMercadoPagoContext(mercadoPagoContext);
         }
-
+        var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(chequeraCuotaId);
+        var tipoChequeraContext = getTipoChequeraContext(chequeraCuota.getTipoChequeraId(), chequeraCuota.getAlternativaId());
         setAccessTokenAndLog();
-
-        PreferenceItemRequest itemRequest = createItemRequest(umPreferenceMPDto);
-        List<PreferenceItemRequest> itemRequests = List.of(itemRequest);
-        logItemRequests(itemRequests);
-
-        PreferencePayerRequest payer = createPayerRequest(umPreferenceMPDto);
-        String externalReference = createExternalReference(umPreferenceMPDto);
-        PreferenceBackUrlsRequest backUrls = createBackUrlsRequest();
-        PreferencePaymentMethodsRequest paymentMethods = createPaymentMethodsRequest();
-
-        PreferenceRequest preferenceRequest = buildPreferenceRequest(itemRequests, payer, backUrls, externalReference, paymentMethods, umPreferenceMPDto);
-        logPreferenceRequest(preferenceRequest);
-
+        PreferenceRequest preferenceRequest = buildPreferenceRequest(umPreferenceMPDto, tipoChequeraContext);
         assert mercadoPagoContext != null;
         return createAndLogPreference(preferenceRequest, mercadoPagoContext, umPreferenceMPDto);
-    }
-
-    private PreferenceRequest buildPreferenceRequest(List<PreferenceItemRequest> itemRequests, PreferencePayerRequest payer, PreferenceBackUrlsRequest backUrls, String externalReference, PreferencePaymentMethodsRequest paymentMethods, UMPreferenceMPDto umPreferenceMPDto) {
-        log.debug("Processing buildPreferenceRequest");
-        var fechaVencimientoMP = DateToolMP.convertToMPDate(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento());
-        return PreferenceRequest.builder()
-                .items(itemRequests)
-                .payer(payer)
-                .backUrls(backUrls)
-                .externalReference(externalReference)
-                .notificationUrl(environment.getProperty("app.notification-url"))
-                .expires(true)
-                .expirationDateTo(fechaVencimientoMP)
-                .paymentMethods(paymentMethods)
-                .binaryMode(true)
-                .statementDescriptor("UNIVMENDOZA")
-                .build();
     }
 
     public MercadoPagoContextDto updatePreference(MercadoPagoContextDto mercadoPagoContext) {
@@ -95,6 +77,9 @@ public class PreferenceService {
         var fechaVencimientoMP = DateToolMP.convertToMPDate(mercadoPagoContext.getFechaVencimiento());
         var importe = mercadoPagoContext.getImporte();
 
+        var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(mercadoPagoContext.getChequeraCuotaId());
+        var tipoChequeraContext = getTipoChequeraContext(chequeraCuota.getTipoChequeraId(), chequeraCuota.getAlternativaId());
+
         // Crea nuevo itemRequest con los valores actualizados
         var item = preference.getItems().getFirst();
         var itemRequest = PreferenceItemRequest.builder()
@@ -107,6 +92,7 @@ public class PreferenceService {
                 .description(item.getDescription())
                 .build();
         List<PreferenceItemRequest> itemRequests = List.of(itemRequest);
+
         // Crea nuevo payerRequest con los valores actualizados
         var payer = preference.getPayer();
         var payerRequest = PreferencePayerRequest.builder()
@@ -117,19 +103,18 @@ public class PreferenceService {
 
         // Crear un nuevo objeto PreferenceRequest con los valores actualizados
         PreferenceRequest updatedPreferenceRequest = PreferenceRequest.builder()
-                .items(itemRequests) // Mantener los items existentes
-                .payer(payerRequest) // Mantener el payer existente
-                .backUrls(createBackUrlsRequest()) // Mantener las URLs de retorno
-                .externalReference(preference.getExternalReference()) // Mantener la referencia externa
-                .notificationUrl(preference.getNotificationUrl()) // Mantener la URL de notificación
+                .items(itemRequests)
+                .payer(payerRequest)
+                .backUrls(createBackUrlsRequest())
+                .externalReference(preference.getExternalReference())
+                .notificationUrl(preference.getNotificationUrl())
                 .expires(true)
-                .expirationDateTo(fechaVencimientoMP) // Actualizar la fecha de vencimiento
-                .paymentMethods(createPaymentMethodsRequest()) // Mantener los métodos de pago
-                .binaryMode(preference.getBinaryMode()) // Mantener el modo binario
-                .statementDescriptor(preference.getStatementDescriptor()) // Mantener el descriptor de estado
+                .expirationDateTo(fechaVencimientoMP)
+                .paymentMethods(createPaymentMethodsRequest(tipoChequeraContext))
+                .binaryMode(preference.getBinaryMode())
+                .statementDescriptor(preference.getStatementDescriptor())
                 .build();
 
-        // Enviar la solicitud de actualización
         try {
             preference = preferenceClient.update(mercadoPagoContext.getPreferenceId(), updatedPreferenceRequest);
             log.debug("Preferencia actualizada con éxito");
@@ -140,7 +125,53 @@ public class PreferenceService {
             log.debug("Error al actualizar la preferencia: {}", e.getMessage());
         }
 
-        return mercadoPagoContext; // Retornar el contexto actualizado
+        return mercadoPagoContext;
+    }
+
+    private TipoChequeraMercadoPagoCreditCardDto getTipoChequeraContext(Integer tipoChequeraId, Integer alternativaId) {
+        try {
+            var tipoChequeraContext = tipoChequeraMercadoPagoCreditCardClient.findByTipoChequeraId(tipoChequeraId);
+            if (tipoChequeraContext.getActive() == 0) {
+                return null;
+            }
+            if (Objects.equals(tipoChequeraContext.getAlternativaId(), alternativaId)) {
+                return tipoChequeraContext;
+            }
+            return null;
+        } catch (Exception e) {
+            log.debug("Error al obtener el contexto de tipo de chequera: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private PreferenceRequest buildPreferenceRequest(UMPreferenceMPDto umPreferenceMPDto, TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext) {
+        log.debug("Processing buildPreferenceRequest");
+        PreferenceItemRequest itemRequest = createItemRequest(umPreferenceMPDto);
+        List<PreferenceItemRequest> itemRequests = List.of(itemRequest);
+        logItemRequests(itemRequests);
+
+        PreferencePayerRequest payer = createPayerRequest(umPreferenceMPDto);
+        String externalReference = createExternalReference(umPreferenceMPDto);
+        PreferenceBackUrlsRequest backUrls = createBackUrlsRequest();
+        PreferencePaymentMethodsRequest paymentMethods = createPaymentMethodsRequest(tipoChequeraContext);
+
+        var fechaVencimientoMP = DateToolMP.convertToMPDate(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento());
+        
+        PreferenceRequest preferenceRequest = PreferenceRequest.builder()
+                .items(itemRequests)
+                .payer(payer)
+                .backUrls(backUrls)
+                .externalReference(externalReference)
+                .notificationUrl(environment.getProperty("app.notification-url"))
+                .expires(true)
+                .expirationDateTo(fechaVencimientoMP)
+                .paymentMethods(paymentMethods)
+                .binaryMode(true)
+                .statementDescriptor("UNIVMENDOZA")
+                .build();
+
+        logPreferenceRequest(preferenceRequest);
+        return preferenceRequest;
     }
 
     private String logAndReturnError(Long chequeraCuotaId) {
@@ -230,15 +261,23 @@ public class PreferenceService {
                 .build();
     }
 
-    private PreferencePaymentMethodsRequest createPaymentMethodsRequest() {
-        log.debug("Processing createPaymentMethodsRequest");
-        List<PreferencePaymentTypeRequest> excludedPaymentTypes = List.of(
-                PreferencePaymentTypeRequest.builder().id("credit_card").build(),
+    private PreferencePaymentMethodsRequest createPaymentMethodsRequest(TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext) {
+        log.debug("Processing PreferenceService.createPaymentMethodsRequest");
+        List<PreferencePaymentTypeRequest> excludedPaymentTypes = new ArrayList<>(List.of(
                 PreferencePaymentTypeRequest.builder().id("ticket").build(),
                 PreferencePaymentTypeRequest.builder().id("prepaid_card").build()
-        );
+        ));
+        if (tipoChequeraContext == null) {
+            excludedPaymentTypes.add(PreferencePaymentTypeRequest.builder().id("credit_card").build());
+            return PreferencePaymentMethodsRequest.builder()
+                    .excludedPaymentTypes(excludedPaymentTypes)
+                    .build();
+        }
         return PreferencePaymentMethodsRequest.builder()
                 .excludedPaymentTypes(excludedPaymentTypes)
+                .defaultPaymentMethodId("credit_card")
+                .installments(tipoChequeraContext.getInstallments())
+                .defaultInstallments(tipoChequeraContext.getDefaultInstallments())
                 .build();
     }
 
