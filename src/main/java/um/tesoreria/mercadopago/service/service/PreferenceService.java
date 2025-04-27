@@ -264,11 +264,11 @@ public class PreferenceService {
     private PreferencePaymentMethodsRequest createPaymentMethodsRequest(TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext) {
         log.debug("Processing PreferenceService.createPaymentMethodsRequest");
         List<PreferencePaymentTypeRequest> excludedPaymentTypes = new ArrayList<>(List.of(
-                PreferencePaymentTypeRequest.builder().id("ticket").build(),
-                PreferencePaymentTypeRequest.builder().id("prepaid_card").build()
+                PreferencePaymentTypeRequest.builder().id("ticket").build()
         ));
         if (tipoChequeraContext == null) {
             excludedPaymentTypes.add(PreferencePaymentTypeRequest.builder().id("credit_card").build());
+            excludedPaymentTypes.add(PreferencePaymentTypeRequest.builder().id("prepaid_card").build());
             return PreferencePaymentMethodsRequest.builder()
                     .excludedPaymentTypes(excludedPaymentTypes)
                     .build();
