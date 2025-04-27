@@ -83,8 +83,16 @@ El proyecto utiliza GitHub Actions para:
 El servicio acepta los siguientes métodos de pago:
 - Transferencias bancarias
 - Pago en efectivo
+- Tarjetas de crédito (configurable por tipo de chequera)
 
 Los siguientes métodos están excluidos:
-- Tarjetas de crédito
 - Tarjetas prepagas
 - Pagos con ticket
+
+### Configuración de Tarjetas de Crédito
+
+La configuración de tarjetas de crédito se realiza a través del tipo de chequera, permitiendo:
+- Habilitar/deshabilitar tarjetas de crédito por tipo de chequera
+- Configurar el número máximo de cuotas
+- Establecer el número de cuotas por defecto
+- Definir el método de pago predeterminado
