@@ -17,19 +17,22 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Integración con TipoChequeraMercadoPagoCreditCard para gestión de métodos de pago
 
 ### Changed
-- Actualización de Spring Boot a 3.4.4
+- Actualización de Spring Boot a 3.4.5
 - Actualización de Spring Cloud a 2024.0.1
 - Actualización de Springdoc OpenAPI a 2.8.6
 - Actualización de MercadoPago SDK Java a 2.2.0
 - Mejoras en el servicio de verificación de pagos
 - Refactorización del servicio de preferencias para soportar configuración de tarjetas de crédito
 - Eliminación del método checking_2024_11_12
+- Mejora en el manejo de errores de MercadoPago con logging detallado
+- Optimización de la configuración de métodos de pago excluidos
 
 ### Deprecated
 - N/A
 
 ### Removed
 - Método checking_2024_11_12 del CheckingService
+- Campo defaultPaymentMethodId de TipoChequeraMercadoPagoCreditCardDto
 
 ### Fixed
 - N/A
