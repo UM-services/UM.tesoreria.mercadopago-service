@@ -14,7 +14,6 @@ public class TipoChequeraMercadoPagoCreditCardDto {
     private UUID id;
     private Integer tipoChequeraId;
     private Integer alternativaId;
-    private String defaultPaymentMethodId;
     private Integer installments;
     private Integer defaultInstallments;
     private Byte active;

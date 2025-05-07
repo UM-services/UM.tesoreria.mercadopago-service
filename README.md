@@ -4,7 +4,7 @@
 [![Deploy GitHub Pages](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml)
 
 [![Java](https://img.shields.io/badge/Java-21-red?logo=java)](https://www.java.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.4-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4.5-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2024.0.1-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.2.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.6-green?logo=openapi-initiative)](https://www.openapis.org/)
@@ -38,7 +38,7 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 ## Tecnologías
 
 - Java 21
-- Spring Boot 3.4.4
+- Spring Boot 3.4.5
 - Spring Cloud 2024.0.1
 - MercadoPago SDK Java 2.2.0
 - Caffeine (para caché)
@@ -95,4 +95,11 @@ La configuración de tarjetas de crédito se realiza a través del tipo de chequ
 - Habilitar/deshabilitar tarjetas de crédito por tipo de chequera
 - Configurar el número máximo de cuotas
 - Establecer el número de cuotas por defecto
-- Definir el método de pago predeterminado
+
+### Manejo de Errores
+
+El servicio incluye un sistema mejorado de logging para errores de MercadoPago que proporciona:
+- Detalles completos de la respuesta de la API
+- Códigos de estado HTTP
+- Mensajes de error específicos
+- Información de la solicitud que causó el error
