@@ -8,7 +8,7 @@ import um.tesoreria.mercadopago.service.domain.dto.TipoChequeraMercadoPagoCredit
 @FeignClient(name = "tesoreria-core-service/api/tesoreria/core/tipoChequeraMercadoPagoCreditCard")
 public interface TipoChequeraMercadoPagoCreditCardClient {
 
-    @GetMapping("/tipoChequera/{tipoChequeraId}")
-    TipoChequeraMercadoPagoCreditCardDto findByTipoChequeraId(@PathVariable Integer tipoChequeraId);
+    @GetMapping("/unique/{tipoChequeraId}/{alternativaId}")
+    TipoChequeraMercadoPagoCreditCardDto findByUnique(@PathVariable Integer tipoChequeraId, @PathVariable Integer alternativaId);
 
 }

@@ -130,7 +130,7 @@ public class PreferenceService {
 
     private TipoChequeraMercadoPagoCreditCardDto getTipoChequeraContext(Integer tipoChequeraId, Integer alternativaId) {
         try {
-            var tipoChequeraContext = tipoChequeraMercadoPagoCreditCardClient.findByTipoChequeraId(tipoChequeraId);
+            var tipoChequeraContext = tipoChequeraMercadoPagoCreditCardClient.findByUnique(tipoChequeraId, alternativaId);
             if (tipoChequeraContext.getActive() == 0) {
                 return null;
             }
