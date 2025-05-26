@@ -15,6 +15,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Funcionalidad para verificación masiva de pagos
 - Soporte para configuración de tarjetas de crédito por tipo de chequera
 - Integración con TipoChequeraMercadoPagoCreditCard para gestión de métodos de pago
+- Added `emailCopia` field to `TipoChequeraDto` for email copy functionality
+- Added detailed logging for `TipoChequeraContext` and `PaymentMethods` in `PreferenceService`
 
 ### Changed
 - Actualización de Spring Boot a 3.4.5
@@ -27,6 +29,10 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Eliminación del método checking_2024_11_12
 - Mejora en el manejo de errores de MercadoPago con logging detallado
 - Optimización de la configuración de métodos de pago excluidos
+- Added `@Builder` annotation to `TipoChequeraDto` for better object construction
+- Improved error handling and logging in MercadoPago integration
+- Updated dependencies for better security and performance
+- Enhanced credit card configuration search and validation
 
 ### Deprecated
 - Endpoint `/tipoChequera/{tipoChequeraId}` en TipoChequeraMercadoPagoCreditCardClient (reemplazado por `/unique/{tipoChequeraId}/{alternativaId}`)
@@ -36,7 +42,8 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Campo defaultPaymentMethodId de TipoChequeraMercadoPagoCreditCardDto
 
 ### Fixed
-- N/A
+- Improved error handling in MercadoPago payment configuration
+- Enhanced logging for better debugging and monitoring
 
 ### Security
 - N/A

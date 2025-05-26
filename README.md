@@ -1,3 +1,84 @@
+# MercadoPago Service
+
+Servicio de integración con MercadoPago para la gestión de pagos y preferencias.
+
+## Características Principales
+
+- Gestión de preferencias de pago en MercadoPago
+- Configuración de métodos de pago por tipo de chequera
+- Soporte para tarjetas de crédito con configuración específica
+- Manejo robusto de errores y logging detallado
+- Integración con sistema de chequeras
+- Soporte para copias de email en notificaciones
+
+## Requisitos
+
+- Java 17 o superior
+- Spring Boot 3.x
+- MercadoPago SDK
+- Base de datos PostgreSQL
+
+## Configuración
+
+### Variables de Entorno
+
+```properties
+# MercadoPago
+MERCADOPAGO_ACCESS_TOKEN=your_access_token
+MERCADOPAGO_PUBLIC_KEY=your_public_key
+
+# Base de Datos
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=mercadopago_db
+DB_USER=user
+DB_PASSWORD=password
+
+# Servicios
+CHEQUERA_SERVICE_URL=http://localhost:8080
+```
+
+## Uso
+
+El servicio expone endpoints REST para la gestión de preferencias de pago:
+
+- `POST /api/v1/preferences`: Crear una nueva preferencia
+- `PUT /api/v1/preferences/{id}`: Actualizar una preferencia existente
+- `GET /api/v1/preferences/{id}`: Obtener una preferencia específica
+
+### Ejemplo de Uso
+
+```java
+// Crear una preferencia
+PreferenceRequest request = PreferenceRequest.builder()
+    .items(List.of(item))
+    .payer(payer)
+    .paymentMethods(paymentMethods)
+    .build();
+
+Preference preference = preferenceService.createPreference(request);
+```
+
+## Logging
+
+El servicio implementa logging detallado para:
+- Configuración de tipo de chequera
+- Métodos de pago configurados
+- Errores de integración con MercadoPago
+- Operaciones de preferencias
+
+## Contribución
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'feat: add some amazing feature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
+
 # UM.tesoreria.mercadopago-service
 
 [![UM.tesoreria.mercadopago-service CI](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
@@ -43,13 +124,6 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 - MercadoPago SDK Java 2.4.0
 - Caffeine (para caché)
 - Springdoc OpenAPI 2.8.8 (Swagger UI)
-
-## Configuración
-
-El servicio requiere las siguientes variables de entorno:
-- `MERCADOPAGO_ACCESS_TOKEN`: Token de acceso de MercadoPago
-- `MERCADOPAGO_WEBHOOK_URL`: URL para webhooks de MercadoPago
-- `APP_SECRET_KEY`: Clave secreta para validación de webhooks
 
 ## Endpoints
 

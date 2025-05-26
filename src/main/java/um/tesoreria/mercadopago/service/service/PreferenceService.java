@@ -79,6 +79,9 @@ public class PreferenceService {
 
         var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(mercadoPagoContext.getChequeraCuotaId());
         var tipoChequeraContext = getTipoChequeraContext(chequeraCuota.getTipoChequeraId(), chequeraCuota.getAlternativaId());
+        if (tipoChequeraContext != null) {
+            logTipoChequeraContext(tipoChequeraContext);
+        }
 
         // Crea nuevo itemRequest con los valores actualizados
         var item = preference.getItems().getFirst();
@@ -101,6 +104,8 @@ public class PreferenceService {
                 .email(payer.getEmail())
                 .build();
 
+        var paymentMethods = createPaymentMethodsRequest(tipoChequeraContext);
+        logPaymentMethods(paymentMethods);
         // Crear un nuevo objeto PreferenceRequest con los valores actualizados
         PreferenceRequest updatedPreferenceRequest = PreferenceRequest.builder()
                 .items(itemRequests)
@@ -110,7 +115,7 @@ public class PreferenceService {
                 .notificationUrl(preference.getNotificationUrl())
                 .expires(true)
                 .expirationDateTo(fechaVencimientoMP)
-                .paymentMethods(createPaymentMethodsRequest(tipoChequeraContext))
+                .paymentMethods(paymentMethods)
                 .binaryMode(preference.getBinaryMode())
                 .statementDescriptor(preference.getStatementDescriptor())
                 .build();
@@ -375,6 +380,32 @@ public class PreferenceService {
         var accessToken = environment.getProperty("app.access-token");
         log.debug("Access Token -> {}", accessToken);
         MercadoPagoConfig.setAccessToken(accessToken);
+    }
+
+    private void logTipoChequeraContext(TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext) {
+        try {
+            log.debug("TipoChequeraContext -> {}", JsonMapper
+                    .builder()
+                    .findAndAddModules()
+                    .build()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(tipoChequeraContext));
+        } catch (JsonProcessingException e) {
+            log.debug("TipoChequeraContext jsonify error -> {}", e.getMessage());
+        }
+    }
+
+    private void logPaymentMethods(PreferencePaymentMethodsRequest paymentMethods) {
+        try {
+            log.debug("PaymentMethods -> {}", JsonMapper
+                    .builder()
+                    .findAndAddModules()
+                    .build()
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(paymentMethods));
+        } catch (JsonProcessingException e) {
+            log.debug("PaymentMethods jsonify error -> {}", e.getMessage());
+        }
     }
 
 }
