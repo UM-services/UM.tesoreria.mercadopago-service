@@ -276,9 +276,12 @@ public class PreferenceService {
             excludedPaymentTypes.add(PreferencePaymentTypeRequest.builder().id("credit_card").build());
             return PreferencePaymentMethodsRequest.builder()
                     .excludedPaymentTypes(excludedPaymentTypes)
+                    .installments(null)
+                    .defaultInstallments(null)
                     .build();
         }
         return PreferencePaymentMethodsRequest.builder()
+                .excludedPaymentTypes(excludedPaymentTypes)
                 .installments(tipoChequeraContext.getInstallments())
                 .defaultInstallments(tipoChequeraContext.getDefaultInstallments())
                 .build();
