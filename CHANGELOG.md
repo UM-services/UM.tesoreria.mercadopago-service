@@ -33,6 +33,7 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.h
 - Improved error handling and logging in MercadoPago integration
 - Updated dependencies for better security and performance
 - Enhanced credit card configuration search and validation
+- Improved payment methods configuration with explicit handling of installments and excluded payment types
 
 ### Deprecated
 - Endpoint `/tipoChequera/{tipoChequeraId}` en TipoChequeraMercadoPagoCreditCardClient (reemplazado por `/unique/{tipoChequeraId}/{alternativaId}`)
