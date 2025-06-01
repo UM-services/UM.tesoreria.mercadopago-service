@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.0.1-SNAPSHOT _(según pom.xml)_
+- **Versión actual:** 0.0.1-SNAPSHOT _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -17,10 +17,11 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Requisitos
 
-- Java 21
-- Spring Boot 3.5.0 _(según pom.xml)_
-- MercadoPago SDK 2.4.0 _(según pom.xml)_
-- Springdoc OpenAPI 2.8.8 _(según pom.xml)_
+- Java 21 _(fuente: pom.xml, revertido desde Java 24 en commit 38563b8)_
+- Spring Boot 3.5.0 _(fuente: pom.xml)_
+- Spring Cloud 2025.0.0 _(fuente: pom.xml)_
+- MercadoPago SDK 2.4.0 _(fuente: pom.xml)_
+- Springdoc OpenAPI 2.8.8 _(fuente: pom.xml)_
 - Base de datos PostgreSQL
 
 ## Configuración
@@ -123,12 +124,12 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 
 ## Tecnologías
 
-- Java 21
-- Spring Boot 3.5.0 _(pom.xml)_
-- Spring Cloud 2025.0.0 _(pom.xml, variable referenciada)_
-- MercadoPago SDK Java 2.4.0 _(pom.xml)_
+- Java 21 _(fuente: pom.xml, revertido desde Java 24 en commit 38563b8)_
+- Spring Boot 3.5.0 _(fuente: pom.xml)_
+- Spring Cloud 2025.0.0 _(fuente: pom.xml)_
+- MercadoPago SDK Java 2.4.0 _(fuente: pom.xml)_
 - Caffeine (para caché)
-- Springdoc OpenAPI 2.8.8 _(pom.xml)_
+- Springdoc OpenAPI 2.8.8 _(fuente: pom.xml)_
 
 ## Endpoints
 
@@ -185,5 +186,7 @@ El servicio incluye un sistema mejorado de logging para errores de MercadoPago q
 
 ## Notas sobre versiones y dependencias
 
-- Todas las versiones indicadas provienen directamente del archivo `pom.xml` y pueden ser verificadas allí.
-- Si alguna dependencia cambia, por favor actualizar este README y referenciar la fuente.
+- Todas las versiones indicadas provienen directamente del archivo `pom.xml` y pueden ser verificadas allí
+- Los cambios recientes en las versiones están documentados en el [CHANGELOG.md](CHANGELOG.md)
+- La información de commits y cambios está disponible en el historial de git
+- Si alguna dependencia cambia, por favor actualizar este README y referenciar la fuente

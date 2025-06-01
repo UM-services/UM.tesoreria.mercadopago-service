@@ -34,12 +34,19 @@ jobs:
       - name: Checkout MercadoPago Service
         uses: actions/checkout@v4
       
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          working-directory: docs
+      
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           
-      - name: Install dependencies
+      - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install PyGithub markdown2 jinja2 requests
@@ -66,15 +73,16 @@ jobs:
         uses: actions/configure-pages@v4
         
       - name: Build with Jekyll
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./docs
-          destination: ./_site
+        run: |
+          cd docs
+          bundle exec jekyll build --baseurl "${{ steps.deployment.outputs.base_path }}"
+        env:
+          JEKYLL_ENV: production
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./_site
+          path: docs/_site
       
   deploy:
     name: Deploy MercadoPago Documentation

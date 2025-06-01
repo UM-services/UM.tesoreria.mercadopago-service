@@ -1,6 +1,21 @@
 title: UM Tesorería MercadoPago Service
 description: Documentación del servicio de MercadoPago para UM Tesorería
-theme: jekyll-theme-cayman
+theme: just-the-docs
+
+# Configuración del tema
+color_scheme: light
+search_enabled: true
+search:
+  heading_level: 2
+  previews: 3
+  preview_words_before: 5
+  preview_words_after: 10
+  tokenizer_separator: /[\s/]+/
+
+# Configuración de navegación
+aux_links:
+  "Repositorio en GitHub":
+    - "https://github.com/um/um.tesoreria.mercadopago-service"
 
 # Configuración importante para Jekyll
 defaults:
@@ -15,6 +30,31 @@ markdown: kramdown
 kramdown:
   input: GFM
   syntax_highlighter: rouge
+  syntax_highlighter_opts:
+    block:
+      line_numbers: true
 
 # Configurar la página principal
-index_page: index.md 
+index_page: index.md
+
+# Configuración de callouts (notas, advertencias, etc)
+callouts_level: quiet
+callouts:
+  highlight:
+    title: Destacado
+    color: blue
+  note:
+    title: Nota
+    color: purple
+  warning:
+    title: Advertencia
+    color: yellow
+  important:
+    title: Importante
+    color: red
+
+# Configuración de mermaid para diagramas
+mermaid:
+  theme: default
+  dark: dark
+  startOnLoad: true 
