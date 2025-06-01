@@ -57,4 +57,18 @@ callouts:
 mermaid:
   theme: default
   dark: dark
-  startOnLoad: true 
+  startOnLoad: true
+
+sass:
+  style: compressed
+  load_paths:
+    - _sass
+    - assets/css
+
+nav:
+  - title: "Inicio"
+    url: "/"
+  - title: "Documentación Detallada"
+    url: "/project-documentation"
+  - title: "Wiki"
+    url: "https://github.com/UM-services/UM.tesoreria.mercadopago-service/wiki" 
