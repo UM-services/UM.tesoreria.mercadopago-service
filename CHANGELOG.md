@@ -2,73 +2,21 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
-y este proyecto adhiere a [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
-### Added
-- Soporte para caché con Caffeine
-- Documentación OpenAPI (Swagger UI)
-- Exclusión de tarjetas prepagas como método de pago
-- Nuevo endpoint para verificación de pagos (/api/tesoreria/mercadopago/checking/11/12/2024)
-- Funcionalidad para verificación masiva de pagos
-- Soporte para configuración de tarjetas de crédito por tipo de chequera
-- Integración con TipoChequeraMercadoPagoCreditCard para gestión de métodos de pago
-- Added `emailCopia` field to `TipoChequeraDto` for email copy functionality
-- Added detailed logging for `TipoChequeraContext` and `PaymentMethods` in `PreferenceService`
+### Cambios recientes (fuente: git log)
 
-### Changed
-- Actualización de Spring Boot a 3.4.5
-- Actualización de Spring Cloud a 2024.0.1
-- Actualización de Springdoc OpenAPI a 2.8.8
-- Actualización de MercadoPago SDK Java a 2.4.0
-- Modificación del endpoint de TipoChequeraMercadoPagoCreditCard para soportar búsqueda por tipoChequeraId y alternativaId
-- Mejoras en el servicio de verificación de pagos
-- Refactorización del servicio de preferencias para soportar configuración de tarjetas de crédito
-- Eliminación del método checking_2024_11_12
-- Mejora en el manejo de errores de MercadoPago con logging detallado
-- Optimización de la configuración de métodos de pago excluidos
-- Added `@Builder` annotation to `TipoChequeraDto` for better object construction
-- Improved error handling and logging in MercadoPago integration
-- Updated dependencies for better security and performance
-- Enhanced credit card configuration search and validation
-- Improved payment methods configuration with explicit handling of installments and excluded payment types
+- 2025-05-26: Mejora en la configuración de métodos de pago y cuotas. Manejo explícito de cuotas e inclusión de tipos de pago excluidos. (commit 88bfef2)
+- 2025-05-26: Mejora en logging y configuración de TipoChequera. Se añade campo emailCopia y anotación @Builder a TipoChequeraDto. (commit 4e461ab)
+- 2025-05-21: Actualización de dependencias y mejora en búsqueda de configuración de tarjetas de crédito. (commit be2dcb9)
+- 2025-05-06: Mejora en el manejo de errores y configuración de pagos de MercadoPago. (commit e44b5ec)
 
-### Deprecated
-- Endpoint `/tipoChequera/{tipoChequeraId}` en TipoChequeraMercadoPagoCreditCardClient (reemplazado por `/unique/{tipoChequeraId}/{alternativaId}`)
+#### Fuente de la información:
+- Los cambios anteriores provienen exclusivamente de los mensajes de los commits recientes (git log).
+- No se han inventado fechas ni versiones.
+- Si existen cambios en el código que no están documentados en git, por favor indícalo para poder agregarlos.
 
-### Removed
-- Método checking_2024_11_12 del CheckingService
-- Campo defaultPaymentMethodId de TipoChequeraMercadoPagoCreditCardDto
+## Notas sobre versiones
 
-### Fixed
-- Improved error handling in MercadoPago payment configuration
-- Enhanced logging for better debugging and monitoring
-
-### Security
-- N/A
-
-## [0.0.1] - 2024-02-04
-
-### Added
-- Integración inicial con MercadoPago
-- Gestión de preferencias de pago
-- Manejo de webhooks
-- Integración con el sistema de facturación de UM Tesorería
-
-### Changed
-- N/A
-
-### Deprecated
-- N/A
-
-### Removed
-- N/A
-
-### Fixed
-- N/A
-
-### Security
-- Implementación de validación de webhooks
-- Manejo seguro de tokens de acceso 
+- La versión actual del proyecto es 0.0.1-SNAPSHOT (según pom.xml).
+- Las versiones de dependencias pueden consultarse en el archivo pom.xml.
