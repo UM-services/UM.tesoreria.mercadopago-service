@@ -6,6 +6,7 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Cambios recientes (fuente: git log)
 
+- 2025-06-01: Actualización de Java a versión 24 y dependencias principales. (commit 02d7435)
 - 2025-05-26: Mejora en la configuración de métodos de pago y cuotas. Manejo explícito de cuotas e inclusión de tipos de pago excluidos. (commit 88bfef2)
 - 2025-05-26: Mejora en logging y configuración de TipoChequera. Se añade campo emailCopia y anotación @Builder a TipoChequeraDto. (commit 4e461ab)
 - 2025-05-21: Actualización de dependencias y mejora en búsqueda de configuración de tarjetas de crédito. (commit be2dcb9)
