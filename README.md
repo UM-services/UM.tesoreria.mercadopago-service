@@ -17,7 +17,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Requisitos
 
-- Java 24
+- Java 21
 - Spring Boot 3.5.0 _(según pom.xml)_
 - MercadoPago SDK 2.4.0 _(según pom.xml)_
 - Springdoc OpenAPI 2.8.8 _(según pom.xml)_
@@ -89,7 +89,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![UM.tesoreria.mercadopago-service CI](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
 [![Deploy GitHub Pages](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml)
 
-[![Java](https://img.shields.io/badge/Java-24-red?logo=java)](https://www.java.com)
+[![Java](https://img.shields.io/badge/Java-21-red?logo=java)](https://www.java.com)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.4.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
@@ -123,7 +123,7 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 
 ## Tecnologías
 
-- Java 24
+- Java 21
 - Spring Boot 3.5.0 _(pom.xml)_
 - Spring Cloud 2025.0.0 _(pom.xml, variable referenciada)_
 - MercadoPago SDK Java 2.4.0 _(pom.xml)_
@@ -146,7 +146,7 @@ mvn spring-boot:run
 
 ### Requisitos
 
-- Java 24
+- Java 21
 - Maven 3.9+
 - Token de acceso de MercadoPago
 
