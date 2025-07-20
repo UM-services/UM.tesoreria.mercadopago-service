@@ -1,0 +1,21 @@
+C4Context
+    title Arquitectura General del Servicio de Mercado Pago
+
+    Enterprise_Boundary(um, "Universidad de Mendoza") {
+        Person(alumno, "Alumno/Usuario", "Usuario que necesita realizar un pago.")
+        
+        System_Boundary(tesoreria, "Sistema de Tesorería UM") {
+            System(um_backend, "Backend Principal UM", "Sistema que gestiona chequeras, alumnos y productos.")
+        }
+
+        System(mercadopago_service, "Servicio MercadoPago", "Este servicio. Procesa pagos, gestiona preferencias y notificaciones de Mercado Pago.")
+    }
+
+    System_Ext(mp_platform, "Plataforma Mercado Pago", "Plataforma externa de procesamiento de pagos.")
+
+    Rel(alumno, mercadopago_service, "1. Inicia solicitud de pago para una chequera")
+    Rel(mercadopago_service, um_backend, "2. Valida datos de la chequera y el alumno")
+    Rel(mercadopago_service, mp_platform, "3. Crea la Preferencia de Pago")
+    Rel(mp_platform, alumno, "4. Redirige para completar el pago")
+    Rel(mp_platform, mercadopago_service, "5. Envía Notificación de Pago (IPN)")
+    Rel(mercadopago_service, um_backend, "6. Actualiza el estado del pago en el sistema de Tesorería")

@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.0.1-SNAPSHOT _(fuente: pom.xml)_
+- **Versión actual:** 0.1.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -17,11 +17,11 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Requisitos
 
-- Java 21 _(fuente: pom.xml, revertido desde Java 24 en commit 38563b8)_
-- Spring Boot 3.5.0 _(fuente: pom.xml)_
+- Java 24 _(fuente: pom.xml)_
+- Spring Boot 3.5.3 _(fuente: pom.xml)_
 - Spring Cloud 2025.0.0 _(fuente: pom.xml)_
-- MercadoPago SDK 2.4.0 _(fuente: pom.xml)_
-- Springdoc OpenAPI 2.8.8 _(fuente: pom.xml)_
+- MercadoPago SDK 2.5.0 _(fuente: pom.xml)_
+- Springdoc OpenAPI 2.8.9 _(fuente: pom.xml)_
 - Base de datos PostgreSQL
 
 ## Configuración
@@ -87,14 +87,14 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 # UM.tesoreria.mercadopago-service
 
-[![UM.tesoreria.mercadopago-service CI](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
-[![Deploy GitHub Pages](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/pages.yml)
+[![UM.tesoreria.mercadopago-service Build JVM Image](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
+[![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
-[![Java](https://img.shields.io/badge/Java-21-red?logo=java)](https://www.java.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.0-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-24-red?logo=java)](https://www.java.com)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
-[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.4.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.8-green?logo=openapi-initiative)](https://www.openapis.org/)
+[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.5.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.9-green?logo=openapi-initiative)](https://www.openapis.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-purple?logo=apache-maven)](https://maven.apache.org/)
 
 ## Autor ✍️
@@ -111,25 +111,24 @@ Servicio de integración con MercadoPago para la arquitectura de microservicios 
 
 ## Documentación
 
+La documentación del proyecto se genera automáticamente con cada push a la rama `main` y se puede consultar en:
+
 - [Documentación del Servicio](https://um-services.github.io/UM.tesoreria.mercadopago-service)
 - [Wiki del Proyecto](https://github.com/UM-services/UM.tesoreria.mercadopago-service/wiki)
 - [Documentación de MercadoPago](https://www.mercadopago.com.ar/developers/es/reference)
 
 ## Estado del Proyecto
 
-El estado actual del proyecto, incluyendo issues activos y milestones, se puede consultar en:
-- [Estado de Issues](https://github.com/UM-services/UM.tesoreria.mercadopago-service/issues)
-- [Milestones](https://github.com/UM-services/UM.tesoreria.mercadopago-service/milestones)
-- [Documentación Detallada del Proyecto](https://um-services.github.io/UM.tesoreria.mercadopago-service/project-documentation.html)
+El estado actual del proyecto, incluyendo issues activos y milestones, se puede consultar en la [documentación del servicio](https://um-services.github.io/UM.tesoreria.mercadopago-service).
 
 ## Tecnologías
 
-- Java 21 _(fuente: pom.xml, revertido desde Java 24 en commit 38563b8)_
-- Spring Boot 3.5.0 _(fuente: pom.xml)_
+- Java 24 _(fuente: pom.xml)_
+- Spring Boot 3.5.3 _(fuente: pom.xml)_
 - Spring Cloud 2025.0.0 _(fuente: pom.xml)_
-- MercadoPago SDK Java 2.4.0 _(fuente: pom.xml)_
+- MercadoPago SDK Java 2.5.0 _(fuente: pom.xml)_
 - Caffeine (para caché)
-- Springdoc OpenAPI 2.8.8 _(fuente: pom.xml)_
+- Springdoc OpenAPI 2.8.9 _(fuente: pom.xml)_
 
 ## Endpoints
 
@@ -147,7 +146,7 @@ mvn spring-boot:run
 
 ### Requisitos
 
-- Java 21
+- Java 24
 - Maven 3.9+
 - Token de acceso de MercadoPago
 
@@ -155,8 +154,9 @@ mvn spring-boot:run
 
 El proyecto utiliza GitHub Actions para:
 - Compilación y pruebas continuas
+- Análisis de código con SonarCloud
 - Generación y despliegue automático de documentación
-- Actualización automática de la wiki del proyecto
+- Construcción y publicación de imágenes Docker
 
 ## Métodos de Pago
 

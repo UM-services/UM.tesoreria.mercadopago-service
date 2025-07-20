@@ -1,0 +1,23 @@
+sequenceDiagram
+    title Flujo de Creación de Preferencia de Pago
+
+    actor Usuario
+    participant Frontend as "Interfaz de Usuario"
+    participant PreferenceController as "PreferenceController"
+    participant PreferenceService as "PreferenceService"
+    participant ChequeraService as "ChequeraService (Cliente)"
+    participant MP_API as "API de Mercado Pago"
+
+    Usuario->>Frontend: 1. Selecciona chequera a pagar
+    Frontend->>PreferenceController: 2. POST /api/v1/preferences (UMPreferenceMPDto)
+    PreferenceController->>PreferenceService: 3. createPreference(dto)
+    
+    PreferenceService->>ChequeraService: 4. getChequera(chequeraId)
+    ChequeraService-->>PreferenceService: 5. Devuelve datos de la chequera
+    
+    PreferenceService->>MP_API: 6. Crea la preferencia de pago (POST /checkout/preferences)
+    MP_API-->>PreferenceService: 7. Devuelve URL de pago (init_point)
+    
+    PreferenceService-->>PreferenceController: 8. Retorna la preferencia con la URL
+    PreferenceController-->>Frontend: 9. Responde con los datos de la preferencia
+    Frontend->>Usuario: 10. Redirige al usuario a la URL de Mercado Pago

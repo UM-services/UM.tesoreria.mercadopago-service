@@ -1,0 +1,9 @@
+eureka:
+  client:
+    enabled: false
+app:
+  swagger:
+    username: testuser
+    password: testpassword
+  secret-key: test-secret-key
+  access-token: test-access-token

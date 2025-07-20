@@ -1,0 +1,46 @@
+erDiagram
+    title Modelo de Datos Principal (DTOs)
+
+    UMPreferenceMPDto {
+        int chequeraId "FK a Chequera"
+        string tipo "Tipo de preferencia"
+        string back_url_success "URL de retorno (Éxito)"
+        string back_url_pending "URL de retorno (Pendiente)"
+        string back_url_failure "URL de retorno (Fallo)"
+        string notification_url "URL para notificaciones IPN"
+    }
+
+    ChequeraDto {
+        int id PK
+        string descripcion
+        double importe
+        PersonaDto persona
+        ProductoDto producto
+    }
+
+    PersonaDto {
+        int id PK
+        string nombre
+        string apellido
+        string nroDocumento
+        string email
+    }
+
+    ProductoDto {
+        int id PK
+        string nombre
+        string descripcion
+    }
+
+    ChequeraPagoDto {
+        int id PK
+        long mercadoPagoPaymentId "ID del pago en MP"
+        string status "Estado del pago"
+        datetime fechaCreacion
+        double totalPagado
+    }
+
+    UMPreferenceMPDto ||--o{ ChequeraDto : "define para"
+    ChequeraDto ||--|{ PersonaDto : "pertenece a"
+    ChequeraDto ||--|{ ProductoDto : "contiene"
+    ChequeraPagoDto }o--|| ChequeraDto : "registra pago de"
