@@ -1,0 +1,18 @@
+deploymentDiagram
+    title Diagrama de Despliegue
+
+    node "Servidor UM" {
+        artifact "mercadopago-service.jar" {
+            component "Spring Boot App"
+        }
+        database "Base de Datos (Externa)" {
+            component "Datos de Tesorería"
+        }
+    }
+
+    node "Plataforma Mercado Pago" {
+        component "API de Mercado Pago"
+    }
+
+    "mercadopago-service.jar" -- "API de Mercado Pago" : HTTPS/REST
+    "mercadopago-service.jar" -- "Base de Datos (Externa)" : JDBC
