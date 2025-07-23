@@ -7,3 +7,7 @@ app:
     password: testpassword
   secret-key: test-secret-key
   access-token: test-access-token
+spring:
+  cloud:
+    consul:
+      enabled: false

@@ -38,12 +38,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -51,7 +45,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+			<artifactId>spring-cloud-starter-consul-discovery</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -73,12 +67,6 @@
 			<groupId>com.mercadopago</groupId>
 			<artifactId>sdk-java</artifactId>
 			<version>2.5.0</version>
-			<exclusions>
-				<exclusion>
-					<groupId>commons-logging</groupId>
-					<artifactId>commons-logging</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
@@ -112,8 +100,24 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 	</dependencies>
+
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-lang3</artifactId>
+				<version>3.18.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.iq80.snappy</groupId>
+				<artifactId>snappy</artifactId>
+				<version>0.5</version>
+			</dependency>
+			<dependency>
+				<groupId>commons-lang</groupId>
+				<artifactId>commons-lang</artifactId>
+				<version>2.6</version>
+			</dependency>
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
