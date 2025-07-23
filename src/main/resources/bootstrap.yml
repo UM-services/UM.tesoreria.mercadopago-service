@@ -5,6 +5,9 @@ app:
   access-token: access-token
   notification-url: notification-url
   secret-key: secret-key
+  consul:
+    host: consul-service
+    port: 8500
   swagger:
     username: ${APP_SWAGGER_USERNAME:tesoreria}
     password: ${APP_SWAGGER_PASSWORD:tesoreria}
@@ -12,18 +15,16 @@ app:
 server:
   port: ${app.port}
 
-eureka:
-  instance:
-    prefer-ip-address: true
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: http://eureka:@eureka-service:8761/eureka
-
 spring:
   application:
     name: ${app.name}
+  cloud:
+    consul:
+      host: ${app.consul.host}
+      port: ${app.consul.port}
+      discovery:
+        prefer-ip-address: true
+        tags: tesoreria,mercadopago
 
 logging:
   level:
@@ -36,7 +37,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,scheduledtasks,env
   endpoint:
     health:
       show-details: always
