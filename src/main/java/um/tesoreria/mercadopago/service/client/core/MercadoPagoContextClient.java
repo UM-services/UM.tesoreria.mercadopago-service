@@ -19,6 +19,9 @@ public interface MercadoPagoContextClient {
     @GetMapping("/all/active/cuota/id")
     List<Long> findAllActiveChequeraCuota();
 
+    @GetMapping("/all/active/to/change")
+    List<Long> findAllActiveToChange();
+
     @GetMapping("/pagos/sin/imputar")
     List<MercadoPagoContextDto> findAllSinImputar();
 

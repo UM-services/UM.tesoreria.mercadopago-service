@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.3</version>
+		<version>3.5.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>um.tesoreria</groupId>
 	<artifactId>mercadopago-service</artifactId>
-	<version>0.1.0</version>
+	<version>0.1.1</version>
 	<name>UM.tesoreria.mercadopago-service</name>
 	<description>um.tesoreria.mercadopago-service</description>
 	<url/>

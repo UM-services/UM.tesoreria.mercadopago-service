@@ -24,7 +24,7 @@ public class CheckingController {
     }
 
     @GetMapping("/all/active")
-    @Scheduled(cron = "0 0 3 * * *")
+    @Scheduled(cron = "0 0 4 * * *")
     public ResponseEntity<String> checkingAllActive() {
         return ResponseEntity.ok(service.checkingAllActive());
     }

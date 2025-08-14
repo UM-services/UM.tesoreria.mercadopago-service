@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.1.0 _(fuente: pom.xml)_
+- **Versión actual:** 0.1.1 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -18,7 +18,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 ## Requisitos
 
 - Java 24 _(fuente: pom.xml)_
-- Spring Boot 3.5.3 _(fuente: pom.xml)_
+- Spring Boot 3.5.4 _(fuente: pom.xml)_
 - Spring Cloud 2025.0.0 _(fuente: pom.xml)_
 - MercadoPago SDK 2.5.0 _(fuente: pom.xml)_
 - Springdoc OpenAPI 2.8.9 _(fuente: pom.xml)_
@@ -91,7 +91,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-24-red?logo=java)](https://www.java.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.3-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.5.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.9-green?logo=openapi-initiative)](https://www.openapis.org/)
@@ -124,7 +124,7 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 ## Tecnologías
 
 - Java 24 _(fuente: pom.xml)_
-- Spring Boot 3.5.3 _(fuente: pom.xml)_
+- Spring Boot 3.5.4 _(fuente: pom.xml)_
 - Spring Cloud 2025.0.0 _(fuente: pom.xml)_
 - MercadoPago SDK Java 2.5.0 _(fuente: pom.xml)_
 - Caffeine (para caché)
