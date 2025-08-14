@@ -25,8 +25,8 @@ public class CheckingService {
     }
 
     public String checkingAllActive() {
-        log.debug("Processing checkingAllActive");
-        for (var chequeraCuotaId : mercadoPagoContextClient.findAllActiveChequeraCuota()) {
+        log.debug("Processing CheckingService.checkingAllActive");
+        for (var chequeraCuotaId : mercadoPagoContextClient.findAllActiveToChange()) {
             log.debug(checkingCuota(chequeraCuotaId));
         }
         return "Checked";

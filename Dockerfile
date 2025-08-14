@@ -36,6 +36,9 @@ WORKDIR /app
 # Copiamos el JAR generado desde la etapa de compilación
 COPY --from=build /app/target/um.tesoreria.mercadopago-service.jar ./um.tesoreria.mercadopago-service.jar
 
+# Damos permisos al usuario sobre el directorio de la aplicación
+RUN chown -R appuser:appgroup /app
+
 # Cambiamos al usuario no privilegiado
 USER appuser
 

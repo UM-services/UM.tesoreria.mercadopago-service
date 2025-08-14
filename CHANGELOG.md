@@ -2,6 +2,19 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.1.1] - 2025-08-14
+
+### Changed
+- chore(deps): Spring Boot `3.5.3` -> `3.5.4` (fuente: `pom.xml`, `git diff HEAD`)
+- chore(schedule): cambia cron de verificación a las 04:00 (fuente: `src/.../controller/CheckingController.java`, `git diff HEAD`)
+
+### Added
+- feat(core-client): nuevo endpoint interno `GET /all/active/to/change` y uso en verificación (fuente: `src/.../client/core/MercadoPagoContextClient.java`, `src/.../service/CheckingService.java`, `git diff HEAD`)
+- refactor(logging): serialización JSON centralizada (`JsonSerializer`, `JacksonJsonSerializer`) y métodos `jsonify` en DTOs (fuente: `src/.../serializer/*`, `src/.../domain/dto/*`, `git diff HEAD`)
+
+### Fixed
+- fix(docker): asegura ownership de `/app` para usuario no root (fuente: `Dockerfile`, `git diff HEAD`)
+
 ## [0.1.0] - 2025-07-20
 
 ### Added
@@ -27,13 +40,13 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Versiones de dependencias principales (fuente: pom.xml)
 
-- Spring Boot: 3.5.3
+- Spring Boot: 3.5.4
 - Spring Cloud: 2025.0.0
 - Java: 24
 - MercadoPago SDK: 2.5.0
 - SpringDoc OpenAPI: 2.8.9
 
 #### Fuente de la información:
-- Los cambios y fechas provienen exclusivamente de los mensajes de los commits (git log) y del análisis del código (`git diff HEAD`).
-- Las versiones de dependencias provienen del archivo pom.xml.
-- La versión actual del proyecto es 0.1.0 (según pom.xml y análisis de cambios).
+- Los cambios y fechas provienen del análisis del código (`git diff HEAD`) y del historial (`git log`).
+- Las versiones de dependencias provienen del archivo `pom.xml`.
+- La versión actual del proyecto propuesta para release es 0.1.1.
