@@ -1,5 +1,5 @@
 
-name: UM.tesoeria.mercadopago-service Build JVM Image
+name: UM.tesoreria.mercadopago-service Build JVM Image
 
 on:
   push:

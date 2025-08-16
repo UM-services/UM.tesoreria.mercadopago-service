@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.1.2] - 2025-08-16
+
+### Added
+- feat(domain): añade campo `lastVencimientoUpdated` en `MercadoPagoContextDto` para rastrear última actualización de vencimiento (fuente: `src/.../domain/dto/MercadoPagoContextDto.java`, `git diff HEAD`)
+- feat(service): actualiza `lastVencimientoUpdated` al modificar preferencias en `PreferenceService` (fuente: `src/.../service/PreferenceService.java`, `git diff HEAD`)
+
+### Fixed
+- fix(workflow): corrige typo en nombre del workflow de GitHub Actions (fuente: `.github/workflows/maven.yml`, `git diff HEAD`)
+
 ## [0.1.1] - 2025-08-14
 
 ### Changed
@@ -49,4 +58,4 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 #### Fuente de la información:
 - Los cambios y fechas provienen del análisis del código (`git diff HEAD`) y del historial (`git log`).
 - Las versiones de dependencias provienen del archivo `pom.xml`.
-- La versión actual del proyecto propuesta para release es 0.1.1.
+- La versión actual del proyecto es 0.1.2.
