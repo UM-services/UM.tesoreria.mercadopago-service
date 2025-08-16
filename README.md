@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.1.1 _(fuente: pom.xml)_
+- **Versión actual:** 0.1.2 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -14,6 +14,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 - Manejo robusto de errores y logging detallado
 - Integración con sistema de chequeras
 - Soporte para copias de email en notificaciones
+- Registro de última actualización de vencimiento de preferencias
 
 ## Requisitos
 

@@ -1,7 +1,5 @@
 package um.tesoreria.mercadopago.service.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.mercadopago.client.preference.*;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
@@ -19,6 +17,8 @@ import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
 import um.tesoreria.mercadopago.service.serializer.JacksonJsonSerializer;
 import um.tesoreria.mercadopago.service.util.DateToolMP;
 
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -125,6 +125,7 @@ public class PreferenceService {
             log.debug("Preferencia actualizada con éxito");
             mercadoPagoContext.setChanged((byte) 0);
             mercadoPagoContext.setPreference(new JacksonJsonSerializer().jsonify(preference));
+            mercadoPagoContext.setLastVencimientoUpdated(OffsetDateTime.now(ZoneOffset.UTC));
             mercadoPagoContext = mercadoPagoCoreClient.updateContext(mercadoPagoContext, mercadoPagoContext.getMercadoPagoContextId());
         } catch (MPException | MPApiException e) {
             log.debug("Error al actualizar la preferencia: {}", e.getMessage());
