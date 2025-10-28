@@ -2,6 +2,20 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.2.0] - 2025-10-28
+
+### Added
+- feat(util): nueva clase `Jsonifier` para centralización de serialización JSON con configuración pretty-print (fuente: `src/main/java/um/tesoreria/mercadopago/service/util/Jsonifier.java`, `git diff HEAD`)
+- feat(logging): mejoras en logging con prefijos de clase y uso de `Jsonifier` en servicios (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/*`, `git diff HEAD`)
+
+### Changed
+- refactor(service): eliminación de constructor manual en `ChequeraService` usando `@RequiredArgsConstructor` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/ChequeraService.java`, `git diff HEAD`)
+- refactor(diagrams): simplificación de etiquetas en diagramas de despliegue y modelo de datos (fuente: `docs/diagrams/despliegue.mmd`, `docs/diagrams/modelo-datos-core.mmd`, `git diff HEAD`)
+- chore(deps): actualización de JDK de 24 a 25 en workflows y Dockerfile (fuente: `.github/workflows/maven.yml`, `Dockerfile`, `git diff HEAD`)
+
+### Removed
+- refactor(logging): eliminación de métodos de logging redundantes en `PaymentService` (logPayment, logMercadoPagoContext, logChequeraPago) (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java`, `git diff HEAD`)
+
 ## [0.1.2] - 2025-08-16
 
 ### Added
@@ -49,13 +63,13 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 ### Versiones de dependencias principales (fuente: pom.xml)
 
-- Spring Boot: 3.5.4
+- Spring Boot: 3.5.6
 - Spring Cloud: 2025.0.0
-- Java: 24
+- Java: 25
 - MercadoPago SDK: 2.5.0
-- SpringDoc OpenAPI: 2.8.9
+- SpringDoc OpenAPI: 2.8.10
 
 #### Fuente de la información:
 - Los cambios y fechas provienen del análisis del código (`git diff HEAD`) y del historial (`git log`).
 - Las versiones de dependencias provienen del archivo `pom.xml`.
-- La versión actual del proyecto es 0.1.2.
+- La versión actual del proyecto es 0.2.0.

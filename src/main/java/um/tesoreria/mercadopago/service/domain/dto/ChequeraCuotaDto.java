@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import um.tesoreria.mercadopago.service.util.Jsonifier;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -51,4 +52,9 @@ public class ChequeraCuotaDto {
     private TipoChequeraDto tipoChequera;
     private ProductoDto producto;
     private ChequeraSerieDto chequeraSerie;
+
+    public String jsonify() {
+        return Jsonifier.builder(this).build();
+    }
+
 }

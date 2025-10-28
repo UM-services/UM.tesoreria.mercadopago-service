@@ -16,6 +16,7 @@ import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 import um.tesoreria.mercadopago.service.client.core.PagoClient;
 import um.tesoreria.mercadopago.service.domain.dto.ChequeraPagoDto;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
+import um.tesoreria.mercadopago.service.util.Jsonifier;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -105,7 +106,7 @@ public class PaymentService {
                     .build();
 
             payment = client.get(Long.parseLong(dataId), requestOptions);
-            logPayment(payment);
+            log.debug("Payment -> {}", Jsonifier.builder(payment).build());
         } catch (MPException | MPApiException e) {
             log.debug("Error getting payment for {}: {}", dataId, e.getMessage());
             return null;
@@ -135,12 +136,12 @@ public class PaymentService {
     public MercadoPagoContextDto processApprovedPayment(Long mercadoPagoContextId) {
         log.debug("Processing processApprovedPayment");
         var context = mercadoPagoCoreClient.findContextByMercadoPagoContextId(mercadoPagoContextId);
-        logMercadoPagoContext(context);
+        log.debug("MercadoPagoContext -> {}", context.jsonify());
         var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
-        logChequeraPago(chequeraPago);
+        log.debug("ChequeraPago -> {}", chequeraPago.jsonify());
         context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
         context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
-        logMercadoPagoContext(context);
+        log.debug("MercadoPagoContext -> {}", context.jsonify());
         return context;
     }
 
@@ -151,7 +152,7 @@ public class PaymentService {
         log.debug("Processing PaymentService.fixPaymentApprovedWithoutChequeraPago");
         var pagosSinImputar = mercadoPagoContextClient.findAllSinImputar();
         pagosSinImputar.forEach(pago -> {
-            logMercadoPagoContext(pago);
+            log.debug("MercadoPagoContext -> {}", pago.jsonify());
             this.processApprovedPayment(pago.getMercadoPagoContextId());
         });
     }
@@ -212,45 +213,6 @@ public class PaymentService {
         }
     }
 
-    private void logPayment(Payment payment) {
-        log.debug("Processing logPayment");
-        try {
-            log.debug("Payment -> {}", JsonMapper.builder()
-                    .findAndAddModules()
-                    .build()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(payment));
-        } catch (JsonProcessingException e) {
-            log.error("Payment error {}", e.getMessage());
-        }
-    }
-
-    private void logMercadoPagoContext(MercadoPagoContextDto mercadoPagoContext) {
-        log.debug("Processing logMercadoPagoContext");
-        try {
-            log.debug("MercadoPagoContext -> {}", JsonMapper.builder()
-                    .findAndAddModules()
-                    .build()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(mercadoPagoContext));
-        } catch (JsonProcessingException e) {
-            log.error("MercadoPagoContext error {}", e.getMessage());
-        }
-    }
-
-    private void logChequeraPago(ChequeraPagoDto chequeraPago) {
-        log.debug("Processing logChequeraPago");
-        try {
-            log.debug("ChequeraPago -> {}", JsonMapper.builder()
-                    .findAndAddModules()
-                    .build()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(chequeraPago));
-        } catch (JsonProcessingException e) {
-            log.error("ChequeraPago error {}", e.getMessage());
-        }
-    }
-
     private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
         log.debug("Processing PaymentService.processPaymentContext");
         if (payment == null) return null;
@@ -259,9 +221,9 @@ public class PaymentService {
         PaymentReferenceData referenceData = parseExternalReference(externalReference);
         if (referenceData == null) return null;
 
-        MercadoPagoContextDto mercadoPagoContext = mercadoPagoCoreClient
+        var mercadoPagoContext = mercadoPagoCoreClient
                 .findContextByMercadoPagoContextId(referenceData.mercadoPagoContextId);
-        logMercadoPagoContext(mercadoPagoContext);
+        log.debug("MercadoPagoContext -> {}", mercadoPagoContext.jsonify());
 
         if (!Objects.equals(mercadoPagoContext.getChequeraCuotaId(), referenceData.chequeraCuotaId)) {
             log.debug("Inconsistencia de chequeraCuotaId entre MPContext y payment");
@@ -307,10 +269,10 @@ public class PaymentService {
         context.setFechaAcreditacion(payment.getMoneyReleaseDate());
         context.setStatus(payment.getStatus());
         log.debug("PaymentService.updateMercadoPagoContext.before");
-        logMercadoPagoContext(context);
+        log.debug("MercadoPagoContext -> {}", context.jsonify());
         context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
         log.debug("PaymentService.updateMercadoPagoContext.after");
-        logMercadoPagoContext(context);
+        log.debug("MercadoPagoContext -> {}", context.jsonify());
         return context;
     }
 

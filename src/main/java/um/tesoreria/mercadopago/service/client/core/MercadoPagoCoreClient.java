@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
 
-@FeignClient(name = "tesoreria-core-service/api/tesoreria/core/mercadopago")
+@FeignClient(name = "tesoreria-core-service", contextId = "mercadoPagoCoreClient", path = "/api/tesoreria/core/mercadopago")
 public interface MercadoPagoCoreClient {
 
     @GetMapping("/makeContext/{chequeraCuotaId}")
