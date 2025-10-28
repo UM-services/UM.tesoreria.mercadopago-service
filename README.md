@@ -4,25 +4,25 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.1.2 _(fuente: pom.xml)_
+- **Versión actual:** 0.2.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
 - Gestión de preferencias de pago en MercadoPago
 - Configuración de métodos de pago por tipo de chequera
 - Soporte para tarjetas de crédito con configuración específica
-- Manejo robusto de errores y logging detallado
+- Manejo robusto de errores y logging detallado mejorado con serialización JSON centralizada
 - Integración con sistema de chequeras
 - Soporte para copias de email en notificaciones
 - Registro de última actualización de vencimiento de preferencias
 
 ## Requisitos
 
-- Java 24 _(fuente: pom.xml)_
-- Spring Boot 3.5.4 _(fuente: pom.xml)_
+- Java 25 _(fuente: pom.xml)_
+- Spring Boot 3.5.6 _(fuente: pom.xml)_
 - Spring Cloud 2025.0.0 _(fuente: pom.xml)_
 - MercadoPago SDK 2.5.0 _(fuente: pom.xml)_
-- Springdoc OpenAPI 2.8.9 _(fuente: pom.xml)_
+- Springdoc OpenAPI 2.8.10 _(fuente: pom.xml)_
 - Base de datos PostgreSQL
 
 ## Configuración
@@ -91,8 +91,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![UM.tesoreria.mercadopago-service Build JVM Image](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/maven.yml)
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
-[![Java](https://img.shields.io/badge/Java-24-red?logo=java)](https://www.java.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.4-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
+[![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.5.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
 [![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.9-green?logo=openapi-initiative)](https://www.openapis.org/)
@@ -124,12 +124,12 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 
 ## Tecnologías
 
-- Java 24 _(fuente: pom.xml)_
-- Spring Boot 3.5.4 _(fuente: pom.xml)_
+- Java 25 _(fuente: pom.xml)_
+- Spring Boot 3.5.6 _(fuente: pom.xml)_
 - Spring Cloud 2025.0.0 _(fuente: pom.xml)_
 - MercadoPago SDK Java 2.5.0 _(fuente: pom.xml)_
 - Caffeine (para caché)
-- Springdoc OpenAPI 2.8.9 _(fuente: pom.xml)_
+- Springdoc OpenAPI 2.8.10 _(fuente: pom.xml)_
 
 ## Endpoints
 
@@ -147,7 +147,7 @@ mvn spring-boot:run
 
 ### Requisitos
 
-- Java 24
+- Java 25
 - Maven 3.9+
 - Token de acceso de MercadoPago
 

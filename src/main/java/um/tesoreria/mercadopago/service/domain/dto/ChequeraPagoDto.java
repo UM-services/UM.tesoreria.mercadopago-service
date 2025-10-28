@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import um.tesoreria.mercadopago.service.util.Jsonifier;
+
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
@@ -36,4 +38,7 @@ public class ChequeraPagoDto {
     private Integer verificador = 0;
     private Integer tipoPagoId;
 
+    public String jsonify() {
+        return Jsonifier.builder(this).build();
+    }
 }

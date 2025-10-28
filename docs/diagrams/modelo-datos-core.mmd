@@ -4,18 +4,16 @@ erDiagram
     UMPreferenceMPDto {
         int chequeraId "FK a Chequera"
         string tipo "Tipo de preferencia"
-        string back_url_success "URL de retorno (Éxito)"
-        string back_url_pending "URL de retorno (Pendiente)"
-        string back_url_failure "URL de retorno (Fallo)"
-        string notification_url "URL para notificaciones IPN"
+        string back_url_success
+        string back_url_pending
+        string back_url_failure
+        string notification_url
     }
 
     ChequeraDto {
         int id PK
         string descripcion
         double importe
-        PersonaDto persona
-        ProductoDto producto
     }
 
     PersonaDto {
@@ -34,13 +32,13 @@ erDiagram
 
     ChequeraPagoDto {
         int id PK
-        long mercadoPagoPaymentId "ID del pago en MP"
-        string status "Estado del pago"
+        long mercadoPagoPaymentId
+        string status
         datetime fechaCreacion
         double totalPagado
     }
 
-    UMPreferenceMPDto ||--o{ ChequeraDto : "define para"
-    ChequeraDto ||--|{ PersonaDto : "pertenece a"
+    UMPreferenceMPDto ||--o{ ChequeraDto : "define_para"
+    ChequeraDto ||--|{ PersonaDto : "pertenece_a"
     ChequeraDto ||--|{ ProductoDto : "contiene"
-    ChequeraPagoDto }o--|| ChequeraDto : "registra pago de"
+    ChequeraPagoDto }o--|| ChequeraDto : "registra_pago_de"

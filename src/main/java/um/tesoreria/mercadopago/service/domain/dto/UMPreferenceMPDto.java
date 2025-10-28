@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import um.tesoreria.mercadopago.service.util.Jsonifier;
 
 @Data
 @NoArgsConstructor
@@ -17,16 +18,7 @@ public class UMPreferenceMPDto {
     private ChequeraCuotaDto chequeraCuota;
 
     public String jsonify() {
-        try {
-            return JsonMapper
-                    .builder()
-                    .findAndAddModules()
-                    .build()
-                    .writerWithDefaultPrettyPrinter()
-                    .writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            return "jsonify error " + e.getMessage();
-        }
+        return Jsonifier.builder(this).build();
     }
 
 }
