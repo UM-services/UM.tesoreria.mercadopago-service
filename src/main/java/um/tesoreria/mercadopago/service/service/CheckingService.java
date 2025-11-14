@@ -1,24 +1,20 @@
 package um.tesoreria.mercadopago.service.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoContextClient;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CheckingService {
 
     private final PreferenceService preferenceService;
     private final MercadoPagoContextClient mercadoPagoContextClient;
 
-    public CheckingService(PreferenceService preferenceService,
-                           MercadoPagoContextClient mercadoPagoContextClient) {
-        this.preferenceService = preferenceService;
-        this.mercadoPagoContextClient = mercadoPagoContextClient;
-    }
-
     public String checkingCuota(Long chequeraCuotaId) {
-        log.debug("Processing checkingCuota -> {}", chequeraCuotaId);
+        log.debug("Processing CheckingService.checkingCuota -> {}", chequeraCuotaId);
         preferenceService.createPreference(chequeraCuotaId);
 
         return "Checked";

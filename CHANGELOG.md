@@ -2,6 +2,18 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.3.0] - 2025-11-14
+
+### Added
+- feat(client): nuevo cliente `ChequeraClient` para envío de notificaciones de cuota (fuente: `src/main/java/um/tesoreria/mercadopago/service/client/sender/ChequeraClient.java`, `git diff HEAD`)
+- feat(scheduled): nueva tarea programada `CheckingScheduled` para verificación diaria automática (fuente: `src/main/java/um/tesoreria/mercadopago/service/scheduled/CheckingScheduled.java`, `git diff HEAD`)
+- feat(service): lógica adicional en `PreferenceService` para envío automático de cuota basado en personaId específico (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+
+### Changed
+- refactor(client): actualización de configuración Feign en clientes core para usar `contextId` y `path` separados (fuente: `src/main/java/um/tesoreria/mercadopago/service/client/core/*`, `git diff HEAD`)
+- refactor(controller): migración a `@RequiredArgsConstructor` en `CheckingController` (fuente: `src/main/java/um/tesoreria/mercadopago/service/controller/CheckingController.java`, `git diff HEAD`)
+- refactor(service): migración a `@RequiredArgsConstructor` en `CheckingService` y mejoras en logging (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/CheckingService.java`, `git diff HEAD`)
+
 ## [0.2.0] - 2025-10-28
 
 ### Added

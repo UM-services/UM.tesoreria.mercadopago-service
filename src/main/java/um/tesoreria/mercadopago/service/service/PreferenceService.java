@@ -11,12 +11,14 @@ import com.mercadopago.MercadoPagoConfig;
 import um.tesoreria.mercadopago.service.client.core.ChequeraCuotaClient;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
 import um.tesoreria.mercadopago.service.client.core.TipoChequeraMercadoPagoCreditCardClient;
+import um.tesoreria.mercadopago.service.client.sender.ChequeraClient;
 import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 import um.tesoreria.mercadopago.service.domain.dto.TipoChequeraMercadoPagoCreditCardDto;
 import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
 import um.tesoreria.mercadopago.service.util.DateToolMP;
 import um.tesoreria.mercadopago.service.util.Jsonifier;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -32,15 +34,17 @@ public class PreferenceService {
     private final PreferenceClient preferenceClient;
     private final TipoChequeraMercadoPagoCreditCardClient tipoChequeraMercadoPagoCreditCardClient;
     private final ChequeraCuotaClient chequeraCuotaClient;
+    private final ChequeraClient chequeraClient;
 
     public PreferenceService(Environment environment,
                              MercadoPagoCoreClient mercadoPagoCoreClient,
-                             TipoChequeraMercadoPagoCreditCardClient tipoChequeraMercadoPagoCreditCardClient, ChequeraCuotaClient chequeraCuotaClient) {
+                             TipoChequeraMercadoPagoCreditCardClient tipoChequeraMercadoPagoCreditCardClient, ChequeraCuotaClient chequeraCuotaClient, ChequeraClient chequeraClient) {
         this.environment = environment;
         this.mercadoPagoCoreClient = mercadoPagoCoreClient;
         this.tipoChequeraMercadoPagoCreditCardClient = tipoChequeraMercadoPagoCreditCardClient;
         this.preferenceClient = new PreferenceClient();
         this.chequeraCuotaClient = chequeraCuotaClient;
+        this.chequeraClient = chequeraClient;
     }
 
     public String createPreference(Long chequeraCuotaId) {
@@ -55,6 +59,11 @@ public class PreferenceService {
         if (mercadoPagoContext != null && mercadoPagoContext.getInitPoint() != null) {
             if (mercadoPagoContext.getChanged() == 1) {
                 mercadoPagoContext = updatePreference(mercadoPagoContext);
+                var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(chequeraCuotaId);
+                if (chequeraCuota.getChequeraSerie().getPersonaId().equals(new BigDecimal("45719365")) ||
+                        chequeraCuota.getChequeraSerie().getPersonaId().equals(new BigDecimal("50478688"))) {
+                    chequeraClient.sendCuota(chequeraCuotaId);
+                }
             }
             return " MercadoPagoContext -> " + mercadoPagoContext.jsonify();
         }
@@ -162,7 +171,7 @@ public class PreferenceService {
         PreferencePaymentMethodsRequest paymentMethods = createPaymentMethodsRequest(tipoChequeraContext);
 
         var fechaVencimientoMP = DateToolMP.convertToMPDate(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento());
-        
+
         PreferenceRequest preferenceRequest = PreferenceRequest.builder()
                 .items(itemRequests)
                 .payer(payer)
@@ -270,10 +279,10 @@ public class PreferenceService {
             mercadoPagoContext.setPreference(Jsonifier.builder(preference).build());
             mercadoPagoCoreClient.updateContext(mercadoPagoContext, mercadoPagoContext.getMercadoPagoContextId());
         } catch (MPApiException e) {
-            log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}", 
-                e.getStatusCode(), 
-                e.getMessage(),
-                e.getApiResponse() != null ? e.getApiResponse().getContent() : "No response content");
+            log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}",
+                    e.getStatusCode(),
+                    e.getMessage(),
+                    e.getApiResponse() != null ? e.getApiResponse().getContent() : "No response content");
             log.error("Request details -> {}", Jsonifier.builder(preferenceRequest).build());
         } catch (MPException e) {
             log.error("MercadoPago General Error -> {}", e.getMessage());
@@ -290,7 +299,7 @@ public class PreferenceService {
 
         // Configurar el token de acceso
         MercadoPagoConfig.setAccessToken(accessToken);
-        
+
         // Crear el cliente de preferencias
         PreferenceClient preferenceClient = new PreferenceClient();
         Preference preference = null;
