@@ -1,5 +1,6 @@
 package um.tesoreria.mercadopago.service.controller;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -10,13 +11,10 @@ import um.tesoreria.mercadopago.service.service.CheckingService;
 
 @RestController
 @RequestMapping("/api/tesoreria/mercadopago/checking")
+@RequiredArgsConstructor
 public class CheckingController {
 
     private final CheckingService service;
-
-    public CheckingController(CheckingService service) {
-        this.service = service;
-    }
 
     @GetMapping("/cuota/{chequeraCuotaId}")
     public ResponseEntity<String> checkingCuota(@PathVariable Long chequeraCuotaId) {

@@ -7,7 +7,7 @@ import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 
 import java.util.List;
 
-@FeignClient(name = "tesoreria-core-service/api/tesoreria/core/mercadoPagoContext")
+@FeignClient(name = "tesoreria-core-service", contextId = "mercadoPagoContextClient", path = "/api/tesoreria/core/mercadoPagoContext")
 public interface MercadoPagoContextClient {
 
     @GetMapping("/cuota/activo/{chequeraCuotaId}")

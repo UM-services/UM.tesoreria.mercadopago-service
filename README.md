@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.2.0 _(fuente: pom.xml)_
+- **Versión actual:** 0.3.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -15,6 +15,8 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 - Integración con sistema de chequeras
 - Soporte para copias de email en notificaciones
 - Registro de última actualización de vencimiento de preferencias
+- Envío automático de notificaciones de cuota para usuarios específicos
+- Tareas programadas para verificación automática diaria
 
 ## Requisitos
 
@@ -95,7 +97,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.5.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.9-green?logo=openapi-initiative)](https://www.openapis.org/)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.10-green?logo=openapi-initiative)](https://www.openapis.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-purple?logo=apache-maven)](https://maven.apache.org/)
 
 ## Autor ✍️
