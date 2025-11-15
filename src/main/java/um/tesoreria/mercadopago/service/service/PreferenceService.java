@@ -60,8 +60,7 @@ public class PreferenceService {
             if (mercadoPagoContext.getChanged() == 1) {
                 mercadoPagoContext = updatePreference(mercadoPagoContext);
                 var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(chequeraCuotaId);
-                if (chequeraCuota.getChequeraSerie().getPersonaId().equals(new BigDecimal("45719365")) ||
-                        chequeraCuota.getChequeraSerie().getPersonaId().equals(new BigDecimal("50478688"))) {
+                if (chequeraCuota.getChequeraSerie().getPersonaId().equals(new BigDecimal("50478688"))) {
                     chequeraClient.sendCuota(chequeraCuotaId);
                 }
             }
