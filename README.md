@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.3.0 _(fuente: pom.xml)_
+- **Versión actual:** 0.3.1 _(fuente: pom.xml)_
 
 ## Características Principales
 

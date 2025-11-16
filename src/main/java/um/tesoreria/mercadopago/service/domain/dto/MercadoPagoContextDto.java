@@ -26,7 +26,9 @@ public class MercadoPagoContextDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
     private OffsetDateTime fechaVencimiento;
 
+    @Builder.Default
     private BigDecimal importe = BigDecimal.ZERO;
+    @Builder.Default
     private Byte changed = 0;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
@@ -34,6 +36,7 @@ public class MercadoPagoContextDto {
 
     private String preferenceId;
     private String preference;
+    @Builder.Default
     private Byte activo = 0;
     private Long chequeraPagoId;
     private String idMercadoPago;
@@ -45,6 +48,7 @@ public class MercadoPagoContextDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
     private OffsetDateTime fechaAcreditacion;
 
+    @Builder.Default
     private BigDecimal importePagado = BigDecimal.ZERO;
     private String payment;
 

@@ -29,22 +29,19 @@ public class ChequeraService {
         log.debug("Processing ChequeraService.createChequeraContext");
         List<UMPreferenceMPDto> preferences = new ArrayList<>();
         for (var chequeraCuota : chequeraCuotaClient.findAllPendientes(facultadId, tipoChequeraId, chequeraSerieId, alternativaId)) {
-            log.debug("ChequeraCuota -> {}", chequeraCuota.jsonify());
             preferenceService.createPreference(chequeraCuota.getChequeraCuotaId());
             MercadoPagoContextDto mercadoPagoContext = null;
             try {
                 mercadoPagoContext = mercadoPagoContextClient.findActivoByChequeraCuotaId(chequeraCuota.getChequeraCuotaId());
             } catch (Exception e) {
-                log.debug("MercadoPagoContext Error -> {}", e.getMessage());
+                log.error("MercadoPagoContext Error -> {}", e.getMessage());
             }
             assert mercadoPagoContext != null;
-            log.debug("MercadoPagoContext -> {}", mercadoPagoContext.jsonify());
             preferences.add(UMPreferenceMPDto.builder()
                     .mercadoPagoContext(mercadoPagoContext)
                     .chequeraCuota(chequeraCuota)
                     .build());
         }
-        log.debug("Preferences -> {}", Jsonifier.builder(preferences).build());
         return preferences;
     }
 
