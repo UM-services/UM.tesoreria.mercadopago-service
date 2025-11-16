@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.3.1] - 2025-11-16
+
+### Fixed
+- fix(service): Eliminada lógica de envío de cuota para `personaId` específico en `PreferenceService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+
+### Changed
+- refactor(dto): Añadidas anotaciones `@Builder.Default` a campos en `MercadoPagoContextDto` y `TipoChequeraDto` para inicialización por defecto (fuente: `src/main/java/um/tesoreria/mercadopago/service/domain/dto/MercadoPagoContextDto.java`, `src/main/java/um/tesoreria/mercadopago/service/domain/dto/TipoChequeraDto.java`, `git diff HEAD`)
+- refactor(logging): Ajustes en mensajes de logging en `ChequeraService` y `PreferenceService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/ChequeraService.java`, `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+
 ## [0.3.0] - 2025-11-14
 
 ### Added

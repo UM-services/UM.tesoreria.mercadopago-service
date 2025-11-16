@@ -53,16 +53,11 @@ public class PreferenceService {
         if (umPreferenceMPDto == null) {
             return logAndReturnError(chequeraCuotaId);
         }
-        log.debug("UMPreferenceMPDto -> {}", umPreferenceMPDto.jsonify());
 
         var mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
         if (mercadoPagoContext != null && mercadoPagoContext.getInitPoint() != null) {
             if (mercadoPagoContext.getChanged() == 1) {
                 mercadoPagoContext = updatePreference(mercadoPagoContext);
-                var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(chequeraCuotaId);
-                if (chequeraCuota.getChequeraSerie().getPersonaId().equals(new BigDecimal("50478688"))) {
-                    chequeraClient.sendCuota(chequeraCuotaId);
-                }
             }
             return " MercadoPagoContext -> " + mercadoPagoContext.jsonify();
         }
@@ -87,9 +82,6 @@ public class PreferenceService {
 
         var chequeraCuota = chequeraCuotaClient.findByChequeraCuotaId(mercadoPagoContext.getChequeraCuotaId());
         var tipoChequeraContext = getTipoChequeraContext(chequeraCuota.getTipoChequeraId(), chequeraCuota.getAlternativaId());
-        if (tipoChequeraContext != null) {
-            log.debug("TipoChequeraContext -> {}", tipoChequeraContext.jsonify());
-        }
 
         // Crea nuevo itemRequest con los valores actualizados
         var item = preference.getItems().getFirst();
@@ -162,7 +154,6 @@ public class PreferenceService {
         log.debug("Processing PreferenceService.buildPreferenceRequest");
         PreferenceItemRequest itemRequest = createItemRequest(umPreferenceMPDto);
         List<PreferenceItemRequest> itemRequests = List.of(itemRequest);
-        log.debug("PreferenceItemRequest -> {}", Jsonifier.builder(itemRequests).build());
 
         PreferencePayerRequest payer = createPayerRequest(umPreferenceMPDto);
         String externalReference = createExternalReference(umPreferenceMPDto);
@@ -190,14 +181,12 @@ public class PreferenceService {
 
     private String logAndReturnError(Long chequeraCuotaId) {
         log.debug("Processing PreferenceService.logAndReturnError");
-        log.error("No se encontro el MercadoPagoContext con el chequeraCuotaId: {}", chequeraCuotaId);
         return "No se encontro el MercadoPagoContext con el chequeraCuotaId: " + chequeraCuotaId;
     }
 
     private void setAccessTokenAndLog() {
-        log.debug("Processing setAccessTokenAndLog");
+        log.debug("Processing PreferenceService.setAccessTokenAndLog");
         var accessToken = environment.getProperty("app.access-token");
-        log.debug("Access Token -> {}", accessToken);
         var configurationUrl = environment.getProperty("app.notification-url");
         log.debug("Configuration URL -> {}", configurationUrl);
         MercadoPagoConfig.setAccessToken(accessToken);
@@ -282,10 +271,8 @@ public class PreferenceService {
                     e.getStatusCode(),
                     e.getMessage(),
                     e.getApiResponse() != null ? e.getApiResponse().getContent() : "No response content");
-            log.error("Request details -> {}", Jsonifier.builder(preferenceRequest).build());
         } catch (MPException e) {
             log.error("MercadoPago General Error -> {}", e.getMessage());
-            log.error("Request details -> {}", Jsonifier.builder(preferenceRequest).build());
         }
 
         return Jsonifier.builder(preference).build() + "\n" + Jsonifier.builder(mercadoPagoContext).build();
@@ -306,7 +293,6 @@ public class PreferenceService {
         try {
             // Realizar la solicitud GET para recuperar la preferencia
             preference = preferenceClient.get(preferenceId);
-            log.debug("Preference -> {}", Jsonifier.builder(preference).build());
         } catch (MPException | MPApiException e) {
             log.debug("Error al recuperar la preferencia: {}", e.getMessage());
         }
