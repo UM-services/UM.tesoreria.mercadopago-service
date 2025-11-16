@@ -8,6 +8,7 @@ import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
 import com.mercadopago.resources.payment.Payment;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ import java.util.Objects;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class PaymentService {
 
     private static final String HMAC_ALGORITHM = "HmacSHA256";
@@ -43,13 +45,6 @@ public class PaymentService {
 
     private final MercadoPagoCoreClient mercadoPagoCoreClient;
     private final PagoClient pagoClient;
-
-    public PaymentService(MercadoPagoCoreClient mercadoPagoCoreClient,
-                          PagoClient pagoClient, MercadoPagoContextClient mercadoPagoContextClient) {
-        this.mercadoPagoCoreClient = mercadoPagoCoreClient;
-        this.pagoClient = pagoClient;
-        this.mercadoPagoContextClient = mercadoPagoContextClient;
-    }
 
     /**
      * Procesa el webhook de pago recibido desde MercadoPago
@@ -106,7 +101,6 @@ public class PaymentService {
                     .build();
 
             payment = client.get(Long.parseLong(dataId), requestOptions);
-            log.debug("Payment -> {}", Jsonifier.builder(payment).build());
         } catch (MPException | MPApiException e) {
             log.debug("Error getting payment for {}: {}", dataId, e.getMessage());
             return null;
@@ -134,14 +128,11 @@ public class PaymentService {
      * @param mercadoPagoContextId   Se agrega para tener una función independiente
      */
     public MercadoPagoContextDto processApprovedPayment(Long mercadoPagoContextId) {
-        log.debug("Processing processApprovedPayment");
+        log.debug("Processing PaymentService.processApprovedPayment");
         var context = mercadoPagoCoreClient.findContextByMercadoPagoContextId(mercadoPagoContextId);
-        log.debug("MercadoPagoContext -> {}", context.jsonify());
         var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
-        log.debug("ChequeraPago -> {}", chequeraPago.jsonify());
         context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
         context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
-        log.debug("MercadoPagoContext -> {}", context.jsonify());
         return context;
     }
 
@@ -152,7 +143,6 @@ public class PaymentService {
         log.debug("Processing PaymentService.fixPaymentApprovedWithoutChequeraPago");
         var pagosSinImputar = mercadoPagoContextClient.findAllSinImputar();
         pagosSinImputar.forEach(pago -> {
-            log.debug("MercadoPagoContext -> {}", pago.jsonify());
             this.processApprovedPayment(pago.getMercadoPagoContextId());
         });
     }
@@ -192,12 +182,12 @@ public class PaymentService {
     }
 
     private String buildManifest(String dataId, String xRequestId, String ts) {
-        log.debug("Processing buildManifest");
+        log.debug("Processing PaymentService.buildManifest");
         return String.format("id:%s;request-id:%s;ts:%s;", dataId, xRequestId, ts);
     }
 
     private boolean verifySignature(String manifest, String expectedSignature) {
-        log.debug("Processing verifySignature");
+        log.debug("Processing PaymentService.verifySignature");
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
@@ -223,7 +213,6 @@ public class PaymentService {
 
         var mercadoPagoContext = mercadoPagoCoreClient
                 .findContextByMercadoPagoContextId(referenceData.mercadoPagoContextId);
-        log.debug("MercadoPagoContext -> {}", mercadoPagoContext.jsonify());
 
         if (!Objects.equals(mercadoPagoContext.getChequeraCuotaId(), referenceData.chequeraCuotaId)) {
             log.debug("Inconsistencia de chequeraCuotaId entre MPContext y payment");
@@ -268,12 +257,7 @@ public class PaymentService {
         context.setFechaPago(payment.getDateApproved());
         context.setFechaAcreditacion(payment.getMoneyReleaseDate());
         context.setStatus(payment.getStatus());
-        log.debug("PaymentService.updateMercadoPagoContext.before");
-        log.debug("MercadoPagoContext -> {}", context.jsonify());
-        context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
-        log.debug("PaymentService.updateMercadoPagoContext.after");
-        log.debug("MercadoPagoContext -> {}", context.jsonify());
-        return context;
+        return mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
     }
 
     private record SignatureComponents(String ts, String v1) {}
