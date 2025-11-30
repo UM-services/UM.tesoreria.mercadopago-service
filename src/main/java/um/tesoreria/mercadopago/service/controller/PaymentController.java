@@ -18,24 +18,32 @@ public class PaymentController {
     }
 
     @PostMapping("/listener")
-    public ResponseEntity<String> listener(HttpServletRequest request, @RequestParam("data.id") String dataId) {
+    public ResponseEntity<String> listener(HttpServletRequest request,
+            @RequestParam(value = "data.id", required = false) String dataId,
+            @RequestBody(required = false) um.tesoreria.mercadopago.service.domain.dto.PaymentNotificationDto notification) {
+        if (dataId == null && notification != null && notification.getData() != null) {
+            dataId = notification.getData().getId();
+        }
         return ResponseEntity.ok(service.processPaymentWebhook(request, dataId));
     }
 
     @GetMapping("/update/{dataId}")
-    public ResponseEntity<Payment> update(@PathVariable String dataId) {
-        return ResponseEntity.ok(service.retrieveAndSavePayment(dataId));
-    }
-
-    @GetMapping("/process/payment/approved/{mercadoPagoContextId}")
-    public ResponseEntity<MercadoPagoContextDto> processPaymentApproved(@PathVariable Long mercadoPagoContextId) {
-        return ResponseEntity.ok(service.processApprovedPayment(mercadoPagoContextId));
-    }
-
-    @GetMapping("/fix/payment/approved/without/chequera/pago")
-    public ResponseEntity<Void> fixPaymentApprovedWithoutChequeraPago() {
-        service.fixPaymentApprovedWithoutChequeraPago();
+    public ResponseEntity<Void> update(@PathVariable String dataId) {
+        service.retrieveAndPublishPayment(dataId);
         return ResponseEntity.ok().build();
     }
+
+    // @GetMapping("/process/payment/approved/{mercadoPagoContextId}")
+    // public ResponseEntity<MercadoPagoContextDto>
+    // processPaymentApproved(@PathVariable Long mercadoPagoContextId) {
+    // return
+    // ResponseEntity.ok(service.processApprovedPayment(mercadoPagoContextId));
+    // }
+    //
+    // @GetMapping("/fix/payment/approved/without/chequera/pago")
+    // public ResponseEntity<Void> fixPaymentApprovedWithoutChequeraPago() {
+    // service.fixPaymentApprovedWithoutChequeraPago();
+    // return ResponseEntity.ok().build();
+    // }
 
 }

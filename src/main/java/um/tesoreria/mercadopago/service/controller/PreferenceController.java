@@ -20,9 +20,10 @@ public class PreferenceController {
         return ResponseEntity.ok("Test");
     }
 
-    @GetMapping("/create/{chequeraCuotaId}")
-    public ResponseEntity<String> createPreference(@PathVariable Long chequeraCuotaId) {
-        return ResponseEntity.ok(service.createPreference(chequeraCuotaId));
+    @PostMapping("/create")
+    public ResponseEntity<String> createPreference(
+            @RequestBody um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto umPreferenceMPDto) {
+        return ResponseEntity.ok(service.createPreference(umPreferenceMPDto));
     }
 
     @GetMapping("/retrieve/{preferenceId}")

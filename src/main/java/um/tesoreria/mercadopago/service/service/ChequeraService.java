@@ -20,27 +20,34 @@ public class ChequeraService {
 
     private final ChequeraCuotaClient chequeraCuotaClient;
     private final PreferenceService preferenceService;
+    private final MercadoPagoCoreClient mercadoPagoCoreClient;
     private final MercadoPagoContextClient mercadoPagoContextClient;
 
     public List<UMPreferenceMPDto> createChequeraContext(Integer facultadId,
-                                                         Integer tipoChequeraId,
-                                                         Long chequeraSerieId,
-                                                         Integer alternativaId) {
-        log.debug("Processing ChequeraService.createChequeraContext");
+            Integer tipoChequeraId,
+            Long chequeraSerieId,
+            Integer alternativaId) {
+        log.debug("\n\nProcessing ChequeraService.createChequeraContext\n\n");
         List<UMPreferenceMPDto> preferences = new ArrayList<>();
-        for (var chequeraCuota : chequeraCuotaClient.findAllPendientes(facultadId, tipoChequeraId, chequeraSerieId, alternativaId)) {
-            preferenceService.createPreference(chequeraCuota.getChequeraCuotaId());
-            MercadoPagoContextDto mercadoPagoContext = null;
-            try {
-                mercadoPagoContext = mercadoPagoContextClient.findActivoByChequeraCuotaId(chequeraCuota.getChequeraCuotaId());
-            } catch (Exception e) {
-                log.error("MercadoPagoContext Error -> {}", e.getMessage());
+        for (var chequeraCuota : chequeraCuotaClient.findAllPendientes(facultadId, tipoChequeraId, chequeraSerieId,
+                alternativaId)) {
+            var umPreferenceMPDto = mercadoPagoCoreClient.makeContext(chequeraCuota.getChequeraCuotaId());
+            if (umPreferenceMPDto != null) {
+                preferenceService.createPreference(umPreferenceMPDto);
+                MercadoPagoContextDto mercadoPagoContext = null;
+                try {
+                    mercadoPagoContext = mercadoPagoContextClient
+                            .findActivoByChequeraCuotaId(chequeraCuota.getChequeraCuotaId());
+                } catch (Exception e) {
+                    log.error("MercadoPagoContext Error -> {}", e.getMessage());
+                }
+                if (mercadoPagoContext != null) {
+                    preferences.add(UMPreferenceMPDto.builder()
+                            .mercadoPagoContext(mercadoPagoContext)
+                            .chequeraCuota(chequeraCuota)
+                            .build());
+                }
             }
-            assert mercadoPagoContext != null;
-            preferences.add(UMPreferenceMPDto.builder()
-                    .mercadoPagoContext(mercadoPagoContext)
-                    .chequeraCuota(chequeraCuota)
-                    .build());
         }
         return preferences;
     }
