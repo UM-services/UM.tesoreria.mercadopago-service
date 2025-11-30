@@ -12,12 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import um.tesoreria.mercadopago.service.client.core.MercadoPagoContextClient;
-import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
-import um.tesoreria.mercadopago.service.client.core.PagoClient;
-import um.tesoreria.mercadopago.service.domain.dto.ChequeraPagoDto;
-import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
-import um.tesoreria.mercadopago.service.util.Jsonifier;
+import um.tesoreria.mercadopago.service.domain.event.PaymentProcessedEvent;
+import um.tesoreria.mercadopago.service.producer.PaymentEventProducer;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -35,7 +31,6 @@ public class PaymentService {
     private static final String HMAC_ALGORITHM = "HmacSHA256";
     private static final String EXTERNAL_REFERENCE_SEPARATOR = "-";
     private static final int EXPECTED_PARTS_LENGTH = 3;
-    private final MercadoPagoContextClient mercadoPagoContextClient;
 
     @Value("${app.secret-key}")
     private String secretKey;
@@ -43,13 +38,13 @@ public class PaymentService {
     @Value("${app.access-token}")
     private String accessToken;
 
-    private final MercadoPagoCoreClient mercadoPagoCoreClient;
-    private final PagoClient pagoClient;
+    private final PaymentEventProducer paymentEventProducer;
 
     /**
      * Procesa el webhook de pago recibido desde MercadoPago
+     * 
      * @param request La solicitud HTTP recibida
-     * @param dataId El ID del pago a procesar
+     * @param dataId  El ID del pago a procesar
      * @return Mensaje indicando el resultado del procesamiento
      */
     public String processPaymentWebhook(HttpServletRequest request, String dataId) {
@@ -57,6 +52,8 @@ public class PaymentService {
             log.error("Falta el parámetro data.id en la URL");
             return "Falta el parámetro data.id en la URL";
         }
+
+        log.debug("\n\nProcessing PaymentService.processPaymentWebhook for {}\n\n", dataId);
 
         String xSignature = request.getHeader("x-signature");
         String xRequestId = request.getHeader("x-request-id");
@@ -77,21 +74,21 @@ public class PaymentService {
         log.debug("Manifest string: {}", manifest);
 
         if (!verifySignature(manifest, signatureComponents.v1)) {
-            return "Verificación fallida";
+             return "\n\nVerificación fallida\n\n";
         }
 
-        retrieveAndSavePayment(dataId);
+        retrieveAndPublishPayment(dataId);
 
-        return "Payment processed";
+        return "\n\nPayment processed\n\n";
     }
 
     /**
-     * Recupera y guarda la información del pago
+     * Recupera y publica la información del pago
+     * 
      * @param dataId id del pago en MercadoPago
-     * @return El objeto Payment procesado
      */
-    public Payment retrieveAndSavePayment(String dataId) {
-        log.debug("Processing PaymentService.retrieveAndSavePayment for {}", dataId);
+    public void retrieveAndPublishPayment(String dataId) {
+        log.debug("\n\nProcessing PaymentService.retrieveAndPublishPayment for {}\n\n", dataId);
         PaymentClient client = new PaymentClient();
         Payment payment;
 
@@ -102,49 +99,11 @@ public class PaymentService {
 
             payment = client.get(Long.parseLong(dataId), requestOptions);
         } catch (MPException | MPApiException e) {
-            log.debug("Error getting payment for {}: {}", dataId, e.getMessage());
-            return null;
+            log.error("Error getting payment for {}: {}", dataId, e.getMessage());
+            return;
         }
 
-        var context = processPaymentContext(payment, dataId);
-        assert context != null;
-        log.debug("Context processed - status: {}", context.getStatus());
-
-        if (Objects.equals(context.getStatus(), "approved")) {
-            context = processApprovedPayment(context.getMercadoPagoContextId());
-        }
-
-        if (context.getStatus().equals("approved") || context.getStatus().equals("rejected")) {
-            context.setActivo((byte) 0);
-            mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
-        }
-
-        return payment;
-    }
-
-    /**
-     * Procesa un pago aprobado, registrando el pago en MercadoPago y actualizando el contexto
-     *
-     * @param mercadoPagoContextId   Se agrega para tener una función independiente
-     */
-    public MercadoPagoContextDto processApprovedPayment(Long mercadoPagoContextId) {
-        log.debug("Processing PaymentService.processApprovedPayment");
-        var context = mercadoPagoCoreClient.findContextByMercadoPagoContextId(mercadoPagoContextId);
-        var chequeraPago = pagoClient.registrarPagoMercadoPago(context.getMercadoPagoContextId());
-        context.setChequeraPagoId(chequeraPago.getChequeraPagoId());
-        context = mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
-        return context;
-    }
-
-    /**
-     * Procesa pagos aprobados sin chequeraPago
-     */
-    public void fixPaymentApprovedWithoutChequeraPago() {
-        log.debug("Processing PaymentService.fixPaymentApprovedWithoutChequeraPago");
-        var pagosSinImputar = mercadoPagoContextClient.findAllSinImputar();
-        pagosSinImputar.forEach(pago -> {
-            this.processApprovedPayment(pago.getMercadoPagoContextId());
-        });
+        processPaymentContext(payment, dataId);
     }
 
     private String validateHeaders(String xSignature, String xRequestId) {
@@ -187,9 +146,12 @@ public class PaymentService {
     }
 
     private boolean verifySignature(String manifest, String expectedSignature) {
-        log.debug("Processing PaymentService.verifySignature");
+        log.debug("\n\nProcessing PaymentService.verifySignature\n\n");
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
+            log.debug("SecretKey: {}", secretKey);
+            log.debug("ExpectedSignature: {}", expectedSignature);
+            log.debug("Access token: {}", accessToken);
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
             mac.init(secretKeySpec);
             byte[] hmacData = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
@@ -203,23 +165,18 @@ public class PaymentService {
         }
     }
 
-    private MercadoPagoContextDto processPaymentContext(Payment payment, String dataId) {
-        log.debug("Processing PaymentService.processPaymentContext");
-        if (payment == null) return null;
+    private void processPaymentContext(Payment payment, String dataId) {
+        log.debug("\n\nProcessing PaymentService.processPaymentContext\n\n");
+        if (payment == null)
+            return;
 
         String externalReference = payment.getExternalReference();
         PaymentReferenceData referenceData = parseExternalReference(externalReference);
-        if (referenceData == null) return null;
+        if (referenceData == null)
+            return;
 
-        var mercadoPagoContext = mercadoPagoCoreClient
-                .findContextByMercadoPagoContextId(referenceData.mercadoPagoContextId);
-
-        if (!Objects.equals(mercadoPagoContext.getChequeraCuotaId(), referenceData.chequeraCuotaId)) {
-            log.debug("Inconsistencia de chequeraCuotaId entre MPContext y payment");
-            return null;
-        }
-
-        return updateMercadoPagoContext(mercadoPagoContext, payment, dataId);
+        log.debug("\n\nPublish Payment Event\n\n");
+        publishPaymentEvent(payment, dataId, referenceData);
     }
 
     private PaymentReferenceData parseExternalReference(String externalReference) {
@@ -240,26 +197,37 @@ public class PaymentService {
         return null;
     }
 
-    private MercadoPagoContextDto updateMercadoPagoContext(MercadoPagoContextDto context, Payment payment, String dataId) {
-        log.debug("Processing PaymentService.updateMercadoPagoContext");
-        context.setIdMercadoPago(dataId);
+    private void publishPaymentEvent(Payment payment, String dataId, PaymentReferenceData referenceData) {
+        log.debug("\n\nProcessing PaymentService.publishPaymentEvent\n\n");
+        String paymentString = null;
         try {
-            String paymentString = JsonMapper.builder()
+            paymentString = JsonMapper.builder()
                     .findAndAddModules()
                     .build()
                     .writerWithDefaultPrettyPrinter()
                     .writeValueAsString(payment);
-            context.setPayment(paymentString);
         } catch (JsonProcessingException e) {
             log.error("PaymentString Error -> {}", e.getMessage());
         }
-        context.setImportePagado(payment.getTransactionAmount());
-        context.setFechaPago(payment.getDateApproved());
-        context.setFechaAcreditacion(payment.getMoneyReleaseDate());
-        context.setStatus(payment.getStatus());
-        return mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
+
+        PaymentProcessedEvent event = PaymentProcessedEvent.builder()
+                .mercadoPagoContextId(referenceData.mercadoPagoContextId)
+                .chequeraCuotaId(referenceData.chequeraCuotaId)
+                .paymentId(dataId)
+                .status(payment.getStatus())
+                .statusDetail(payment.getStatusDetail())
+                .dateApproved(payment.getDateApproved())
+                .dateCreated(payment.getDateCreated())
+                .transactionAmount(payment.getTransactionAmount())
+                .paymentJson(paymentString)
+                .build();
+
+        paymentEventProducer.publish(event);
     }
 
-    private record SignatureComponents(String ts, String v1) {}
-    private record PaymentReferenceData(Long chequeraCuotaId, Long mercadoPagoContextId) {}
+    private record SignatureComponents(String ts, String v1) {
+    }
+
+    private record PaymentReferenceData(Long chequeraCuotaId, Long mercadoPagoContextId) {
+    }
 }

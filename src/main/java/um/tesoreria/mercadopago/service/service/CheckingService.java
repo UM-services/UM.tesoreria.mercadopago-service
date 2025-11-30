@@ -12,10 +12,14 @@ public class CheckingService {
 
     private final PreferenceService preferenceService;
     private final MercadoPagoContextClient mercadoPagoContextClient;
+    private final um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient mercadoPagoCoreClient;
 
     public String checkingCuota(Long chequeraCuotaId) {
         log.debug("Processing CheckingService.checkingCuota -> {}", chequeraCuotaId);
-        preferenceService.createPreference(chequeraCuotaId);
+        var umPreferenceMPDto = mercadoPagoCoreClient.makeContext(chequeraCuotaId);
+        if (umPreferenceMPDto != null) {
+            preferenceService.createPreference(umPreferenceMPDto);
+        }
 
         return "Checked";
     }
