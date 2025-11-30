@@ -46,10 +46,10 @@ public class PreferenceService {
         this.chequeraCuotaClient = chequeraCuotaClient;
     }
 
-    public String createPreference(UMPreferenceMPDto umPreferenceMPDto) {
+    public MercadoPagoContextDto createPreference(UMPreferenceMPDto umPreferenceMPDto) {
         log.debug("\n\nProcessing PreferenceService.createPreference\n\n");
         if (umPreferenceMPDto == null) {
-            return "Error: UMPreferenceMPDto is null";
+            throw new IllegalArgumentException("UMPreferenceMPDto cannot be null");
         }
 
         var mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
@@ -57,7 +57,7 @@ public class PreferenceService {
             if (mercadoPagoContext.getChanged() == 1) {
                 mercadoPagoContext = updatePreference(mercadoPagoContext);
             }
-            return " MercadoPagoContext -> " + mercadoPagoContext.jsonify();
+            return mercadoPagoContext;
         }
         var chequeraCuota = umPreferenceMPDto.getChequeraCuota();
         var tipoChequeraContext = getTipoChequeraContext(chequeraCuota.getTipoChequeraId(),
@@ -106,7 +106,7 @@ public class PreferenceService {
                 .build();
 
         var paymentMethods = createPaymentMethodsRequest(tipoChequeraContext);
-//        log.debug("PaymentMethods -> {}", Jsonifier.builder(paymentMethods).build());
+        // log.debug("PaymentMethods -> {}", Jsonifier.builder(paymentMethods).build());
         // Crear un nuevo objeto PreferenceRequest con los valores actualizados
         PreferenceRequest updatedPreferenceRequest = PreferenceRequest.builder()
                 .items(itemRequests)
@@ -127,8 +127,8 @@ public class PreferenceService {
             mercadoPagoContext.setChanged((byte) 0);
             mercadoPagoContext.setPreference(Jsonifier.builder(preference).build());
             mercadoPagoContext.setLastVencimientoUpdated(OffsetDateTime.now(ZoneOffset.UTC));
-            mercadoPagoContext = mercadoPagoCoreClient.updateContext(mercadoPagoContext,
-                    mercadoPagoContext.getMercadoPagoContextId());
+            // mercadoPagoContext = mercadoPagoCoreClient.updateContext(mercadoPagoContext,
+            // mercadoPagoContext.getMercadoPagoContextId());
         } catch (MPException | MPApiException e) {
             log.debug("\n\nError al actualizar la preferencia: {}\n\n", e.getMessage());
         }
@@ -180,7 +180,8 @@ public class PreferenceService {
                 .statementDescriptor("UNIVMENDOZA")
                 .build();
 
-//        log.debug("PreferenceRequest -> {}", Jsonifier.builder(preferenceRequest).build());
+        // log.debug("PreferenceRequest -> {}",
+        // Jsonifier.builder(preferenceRequest).build());
         return preferenceRequest;
     }
 
@@ -264,7 +265,8 @@ public class PreferenceService {
                 .build();
     }
 
-    private String createAndLogPreference(PreferenceRequest preferenceRequest, MercadoPagoContextDto mercadoPagoContext,
+    private MercadoPagoContextDto createAndLogPreference(PreferenceRequest preferenceRequest,
+            MercadoPagoContextDto mercadoPagoContext,
             UMPreferenceMPDto umPreferenceMPDto) {
         log.debug("\n\nProcessing PreferenceService.createAndLogPreference\n\n");
         Preference preference = null;
@@ -274,7 +276,8 @@ public class PreferenceService {
             mercadoPagoContext.setInitPoint(preference.getInitPoint());
             mercadoPagoContext.setPreferenceId(preference.getId());
             mercadoPagoContext.setPreference(Jsonifier.builder(preference).build());
-            mercadoPagoCoreClient.updateContext(mercadoPagoContext, mercadoPagoContext.getMercadoPagoContextId());
+            // mercadoPagoCoreClient.updateContext(mercadoPagoContext,
+            // mercadoPagoContext.getMercadoPagoContextId());
         } catch (MPApiException e) {
             log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}",
                     e.getStatusCode(),
@@ -284,7 +287,7 @@ public class PreferenceService {
             log.error("MercadoPago General Error -> {}", e.getMessage());
         }
 
-        return Jsonifier.builder(preference).build() + "\n" + Jsonifier.builder(mercadoPagoContext).build();
+        return mercadoPagoContext;
     }
 
     public Preference retrievePreference(String preferenceId) {

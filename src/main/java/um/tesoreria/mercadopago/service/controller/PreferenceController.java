@@ -3,6 +3,8 @@ package um.tesoreria.mercadopago.service.controller;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
+import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
 import um.tesoreria.mercadopago.service.service.PreferenceService;
 
 @RestController
@@ -21,8 +23,8 @@ public class PreferenceController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<String> createPreference(
-            @RequestBody um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto umPreferenceMPDto) {
+    public ResponseEntity<MercadoPagoContextDto> createPreference(
+            @RequestBody UMPreferenceMPDto umPreferenceMPDto) {
         return ResponseEntity.ok(service.createPreference(umPreferenceMPDto));
     }
 
