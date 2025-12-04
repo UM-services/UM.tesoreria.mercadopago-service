@@ -74,6 +74,7 @@ public class PaymentService {
         log.debug("Manifest string: {}", manifest);
 
         if (!verifySignature(manifest, signatureComponents.v1)) {
+//            log.warn("Deja continuar para testear kafka");
              return "\n\nVerificación fallida\n\n";
         }
 

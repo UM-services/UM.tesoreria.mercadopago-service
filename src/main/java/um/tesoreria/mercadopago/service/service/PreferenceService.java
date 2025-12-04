@@ -276,8 +276,7 @@ public class PreferenceService {
             mercadoPagoContext.setInitPoint(preference.getInitPoint());
             mercadoPagoContext.setPreferenceId(preference.getId());
             mercadoPagoContext.setPreference(Jsonifier.builder(preference).build());
-            // mercadoPagoCoreClient.updateContext(mercadoPagoContext,
-            // mercadoPagoContext.getMercadoPagoContextId());
+            mercadoPagoCoreClient.updateContext(mercadoPagoContext, mercadoPagoContext.getMercadoPagoContextId());
         } catch (MPApiException e) {
             log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}",
                     e.getStatusCode(),
