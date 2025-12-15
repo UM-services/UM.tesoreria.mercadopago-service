@@ -18,7 +18,14 @@ public class CheckingService {
         log.debug("Processing CheckingService.checkingCuota -> {}", chequeraCuotaId);
         var umPreferenceMPDto = mercadoPagoCoreClient.makeContext(chequeraCuotaId);
         if (umPreferenceMPDto != null) {
-            preferenceService.createPreference(umPreferenceMPDto);
+            var context = preferenceService.createPreference(umPreferenceMPDto);
+            if (context != null) {
+                try {
+                    mercadoPagoCoreClient.updateContext(context, context.getMercadoPagoContextId());
+                } catch (Exception e) {
+                    log.error("Error updating context in Core: {}", e.getMessage());
+                }
+            }
         }
 
         return "Checked";
