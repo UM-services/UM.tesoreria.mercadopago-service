@@ -4,11 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import um.tesoreria.mercadopago.service.client.core.ChequeraCuotaClient;
-import um.tesoreria.mercadopago.service.client.core.MercadoPagoContextClient;
 import um.tesoreria.mercadopago.service.client.core.MercadoPagoCoreClient;
-import um.tesoreria.mercadopago.service.domain.dto.MercadoPagoContextDto;
 import um.tesoreria.mercadopago.service.domain.dto.UMPreferenceMPDto;
-import um.tesoreria.mercadopago.service.util.Jsonifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +18,6 @@ public class ChequeraService {
     private final ChequeraCuotaClient chequeraCuotaClient;
     private final PreferenceService preferenceService;
     private final MercadoPagoCoreClient mercadoPagoCoreClient;
-    private final MercadoPagoContextClient mercadoPagoContextClient;
 
     public List<UMPreferenceMPDto> createChequeraContext(Integer facultadId,
             Integer tipoChequeraId,
@@ -33,15 +29,14 @@ public class ChequeraService {
                 alternativaId)) {
             var umPreferenceMPDto = mercadoPagoCoreClient.makeContext(chequeraCuota.getChequeraCuotaId());
             if (umPreferenceMPDto != null) {
-                preferenceService.createPreference(umPreferenceMPDto);
-                MercadoPagoContextDto mercadoPagoContext = null;
-                try {
-                    mercadoPagoContext = mercadoPagoContextClient
-                            .findActivoByChequeraCuotaId(chequeraCuota.getChequeraCuotaId());
-                } catch (Exception e) {
-                    log.error("MercadoPagoContext Error -> {}", e.getMessage());
-                }
+                var mercadoPagoContext = preferenceService.createPreference(umPreferenceMPDto);
                 if (mercadoPagoContext != null) {
+                    try {
+                        mercadoPagoCoreClient.updateContext(mercadoPagoContext,
+                                mercadoPagoContext.getMercadoPagoContextId());
+                    } catch (Exception e) {
+                        log.error("Error updating context in Core: {}", e.getMessage());
+                    }
                     preferences.add(UMPreferenceMPDto.builder()
                             .mercadoPagoContext(mercadoPagoContext)
                             .chequeraCuota(chequeraCuota)
