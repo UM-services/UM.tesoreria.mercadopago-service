@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.3.1 _(fuente: pom.xml)_
+- **Versión actual:** 0.4.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -21,10 +21,10 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 ## Requisitos
 
 - Java 25 _(fuente: pom.xml)_
-- Spring Boot 3.5.6 _(fuente: pom.xml)_
-- Spring Cloud 2025.0.0 _(fuente: pom.xml)_
-- MercadoPago SDK 2.5.0 _(fuente: pom.xml)_
-- Springdoc OpenAPI 2.8.10 _(fuente: pom.xml)_
+- Spring Boot 4.0.2 _(fuente: pom.xml)_
+- Spring Cloud 2025.1.0 _(fuente: pom.xml)_
+- MercadoPago SDK 2.8.0 _(fuente: pom.xml)_
+- Springdoc OpenAPI 3.0.1 _(fuente: pom.xml)_
 - Base de datos PostgreSQL
 
 ## Configuración
@@ -94,10 +94,10 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
-[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
-[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.5.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-2.8.10-green?logo=openapi-initiative)](https://www.openapis.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
+[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.0-blue?logo=spring)](https://spring.io/projects/spring-cloud)
+[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.8.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.1-green?logo=openapi-initiative)](https://www.openapis.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-purple?logo=apache-maven)](https://maven.apache.org/)
 
 ## Autor ✍️
@@ -127,11 +127,11 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 ## Tecnologías
 
 - Java 25 _(fuente: pom.xml)_
-- Spring Boot 3.5.6 _(fuente: pom.xml)_
-- Spring Cloud 2025.0.0 _(fuente: pom.xml)_
-- MercadoPago SDK Java 2.5.0 _(fuente: pom.xml)_
+- Spring Boot 4.0.2 _(fuente: pom.xml)_
+- Spring Cloud 2025.1.0 _(fuente: pom.xml)_
+- MercadoPago SDK Java 2.8.0 _(fuente: pom.xml)_
 - Caffeine (para caché)
-- Springdoc OpenAPI 2.8.10 _(fuente: pom.xml)_
+- Springdoc OpenAPI 3.0.1 _(fuente: pom.xml)_
 
 ## Endpoints
 
