@@ -80,17 +80,17 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 - **Antiguo sistema de documentación:** Se ha eliminado el antiguo sistema de documentación basado en Jekyll.
 
-## [Unreleased]
+## [0.4.0] - 2026-02-03
 
-### Versiones de dependencias principales (fuente: pom.xml)
-
-- Spring Boot: 3.5.6
-- Spring Cloud: 2025.0.0
-- Java: 25
-- MercadoPago SDK: 2.5.0
-- SpringDoc OpenAPI: 2.8.10
+### Changed
+- chore(deps): Actualización de Spring Boot de 3.5.8 a 4.0.2 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de Spring Cloud de 2025.0.0 a 2025.1.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de MercadoPago SDK de 2.5.0 a 2.8.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de SpringDoc OpenAPI de 2.8.10 a 3.0.1 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de commons-fileupload de 1.5 a 1.6.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de commons-beanutils de 1.9.4 a 1.11.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de commons-lang3 de 3.18.0 a 3.20.0 (fuente: `pom.xml`, `git diff HEAD`)
 
 #### Fuente de la información:
 - Los cambios y fechas provienen del análisis del código (`git diff HEAD`) y del historial (`git log`).
 - Las versiones de dependencias provienen del archivo `pom.xml`.
-- La versión actual del proyecto es 0.2.0.
