@@ -51,7 +51,7 @@ public class PreferenceService {
         if (umPreferenceMPDto == null) {
             throw new IllegalArgumentException("UMPreferenceMPDto cannot be null");
         }
-
+        log.debug("UMPreferenceMP -> {}", umPreferenceMPDto.jsonify());
         var mercadoPagoContext = umPreferenceMPDto.getMercadoPagoContext();
         if (mercadoPagoContext != null && mercadoPagoContext.getInitPoint() != null) {
             if (mercadoPagoContext.getChanged() == 1) {
