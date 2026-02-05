@@ -80,6 +80,14 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 - **Antiguo sistema de documentación:** Se ha eliminado el antiguo sistema de documentación basado en Jekyll.
 
+## [0.4.1] - 2026-02-05
+
+### Fixed
+- fix(service): Restablecida validación de firma en PaymentService (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java`, `git diff HEAD`)
+
+### Changed
+- refactor(service): Añadido logging de debug para UMPreferenceMPDto en PreferenceService (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+
 ## [0.4.0] - 2026-02-03
 
 ### Changed
