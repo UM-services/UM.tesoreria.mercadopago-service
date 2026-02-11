@@ -244,6 +244,7 @@ public class PaymentService {
         ids.addAll(getIdsPart7());
         ids.addAll(getIdsPart8());
         for (var idMercadoPago : ids) {
+            log.debug("Importando idMercadoPago -> {}", idMercadoPago);
             this.retrieveAndPublishPayment(idMercadoPago.toString());
         }
     }
