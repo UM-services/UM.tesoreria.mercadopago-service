@@ -244,8 +244,12 @@ public class PaymentService {
         ids.addAll(getIdsPart7());
         ids.addAll(getIdsPart8());
         for (var idMercadoPago : ids) {
-            log.debug("Importando idMercadoPago -> {}", idMercadoPago);
-            this.retrieveAndPublishPayment(idMercadoPago.toString());
+            log.info("Importando idMercadoPago -> {}", idMercadoPago);
+            try {
+                this.retrieveAndPublishPayment(idMercadoPago.toString());
+            } catch (Exception e) {
+                log.info("Error al importar idMercadoPago -> {}", e.getMessage());
+            }
         }
     }
 
