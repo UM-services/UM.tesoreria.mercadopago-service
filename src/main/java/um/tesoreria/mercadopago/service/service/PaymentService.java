@@ -234,7 +234,23 @@ public class PaymentService {
     }
 
     public void fillFaltantes() {
-        var ids = List.of(145195795202L,
+        java.util.List<Long> ids = new java.util.ArrayList<>();
+        ids.addAll(getIdsPart1());
+        ids.addAll(getIdsPart2());
+        ids.addAll(getIdsPart3());
+        ids.addAll(getIdsPart4());
+        ids.addAll(getIdsPart5());
+        ids.addAll(getIdsPart6());
+        ids.addAll(getIdsPart7());
+        ids.addAll(getIdsPart8());
+        for (var idMercadoPago : ids) {
+            this.retrieveAndPublishPayment(idMercadoPago.toString());
+        }
+    }
+
+    private java.util.List<Long> getIdsPart1() {
+        return java.util.List.of(
+                145195795202L,
                 144510535083L,
                 145195520560L,
                 145195488380L,
@@ -733,7 +749,12 @@ public class PaymentService {
                 145104476980L,
                 144419593935L,
                 145104309562L,
-                144419608809L,
+                144419608809L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart2() {
+        return java.util.List.of(
                 145104278830L,
                 144419311907L,
                 145104174134L,
@@ -1233,7 +1254,12 @@ public class PaymentService {
                 144313653255L,
                 144997662946L,
                 144313325939L,
-                144313301829L,
+                144313301829L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart3() {
+        return java.util.List.of(
                 144313376369L,
                 144313185473L,
                 144312956741L,
@@ -1733,7 +1759,12 @@ public class PaymentService {
                 144922839454L,
                 144239005619L,
                 144238701537L,
-                144922526544L,
+                144922526544L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart4() {
+        return java.util.List.of(
                 144238700327L,
                 144922450628L,
                 144238313571L,
@@ -2233,7 +2264,12 @@ public class PaymentService {
                 144813375820L,
                 144813377138L,
                 144130361223L,
-                144130327027L,
+                144130327027L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart5() {
+        return java.util.List.of(
                 144130252881L,
                 144130234585L,
                 144812818042L,
@@ -2733,7 +2769,12 @@ public class PaymentService {
                 144020191689L,
                 144019762015L,
                 144018094089L,
-                144699941848L,
+                144699941848L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart6() {
+        return java.util.List.of(
                 144017528421L,
                 144017302647L,
                 144698903028L,
@@ -3233,7 +3274,12 @@ public class PaymentService {
                 143939447987L,
                 143939387897L,
                 143939486835L,
-                143939316677L,
+                143939316677L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart7() {
+        return java.util.List.of(
                 144620199264L,
                 144620141082L,
                 143938744571L,
@@ -3733,7 +3779,12 @@ public class PaymentService {
                 143819169663L,
                 144500223968L,
                 144500199638L,
-                143819117393L,
+                143819117393L
+        );
+    }
+
+    private java.util.List<Long> getIdsPart8() {
+        return java.util.List.of(
                 144500276414L,
                 143819168571L,
                 144500047772L,
@@ -3995,10 +4046,7 @@ public class PaymentService {
                 143775218645L,
                 144448722808L,
                 144446383676L,
-                144446285182L);
-        for (var idMercadoPago : ids) {
-            this.retrieveAndPublishPayment(idMercadoPago.toString());
-        }
+                144446285182L
+        );
     }
-
 }
