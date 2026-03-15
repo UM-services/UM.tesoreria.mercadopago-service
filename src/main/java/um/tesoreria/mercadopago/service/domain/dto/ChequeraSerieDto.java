@@ -37,6 +37,14 @@ public class ChequeraSerieDto {
     private Byte enviado = 0;
     private Byte retenida = 0;
     private Long version;
+
+    private Byte hpum = 0;
+    private BigDecimal becaPorcentaje = BigDecimal.ZERO;
+    private String becaResolucion;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
+    private OffsetDateTime becaFecha;
+    private Long becaUserId;
+
     private Integer cuotasDeuda = 0;
     private BigDecimal importeDeuda = BigDecimal.ZERO;
     

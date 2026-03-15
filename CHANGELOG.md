@@ -2,7 +2,27 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
-## [0.3.1] - 2025-11-16
+## [0.5.0] - 2026-03-14
+
+### Added
+- feat(dto): Nuevos campos de gestión de becas en `ChequeraSerieDto` (fuente: `src/main/java/um/tesoreria/mercadopago/service/domain/dto/ChequeraSerieDto.java`, `git diff HEAD`)
+  - `hpum` (Byte): Indicador de Hilfe Programm UM
+  - `becaPorcentaje` (BigDecimal): Porcentaje de beca
+  - `becaResolucion` (String): Resolución de la beca
+  - `becaFecha` (OffsetDateTime): Fecha de otorgamiento de beca
+  - `becaUserId` (Long): ID del usuario que otorga la beca
+
+### Changed
+- refactor(service): Comented verification of signature in PaymentService for testing purposes (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java`, `git diff HEAD`)
+
+### Removed
+- refactor(controller): Eliminado endpoint `/faltantes` de `PaymentController` (fuente: `src/main/java/um/tesoreria/mercadopago/service/controller/PaymentController.java`, `git diff HEAD`)
+- refactor(service): Eliminado método `fillFaltantes()` de `PaymentService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java`, `git diff HEAD`)
+
+### Breaking Changes
+- El endpoint `GET /faltantes` ha sido eliminado. Los métodos asociados `getIdsPart1()` a `getIdsPart8()` también han sido eliminados.
+
+## [0.4.1] - 2026-02-05
 
 ### Fixed
 - fix(service): Eliminada lógica de envío de cuota para `personaId` específico en `PreferenceService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
