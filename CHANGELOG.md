@@ -2,6 +2,26 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.5.1] - 2026-04-04
+
+### Changed
+- chore(deps): Actualización de Spring Boot de 4.0.2 a 4.0.5 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de SpringDoc OpenAPI de 3.0.1 a 3.0.2 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Añadida dependencia plexus-utils 4.0.2 para resolución de vulnerabilidades (fuente: `pom.xml`, `git diff HEAD`)
+- chore(actions): Actualización de GitHub Actions a versiones recientes:
+  - actions/checkout@v4 → v6
+  - actions/setup-java@v4 → v5
+  - actions/cache@v4 → v5
+  - actions/deploy-pages@v4 → v5
+  - docker/login-action@v3 → v4
+  - docker/metadata-action@v5 → v6
+  - docker/setup-buildx-action@v3 → v4
+  - docker/build-push-action@v6 → v7
+
+### Fixed
+- fix(service): Corrección de tipado en PaymentService - cambio de `Long.parseLong` a `Long.valueOf(Long.parseLong(...))` para compatibilidad (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java:100`, `git diff HEAD`)
+- fix(service): Corrección de cast en PaymentReferenceData para parseo de externalReference (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java:187-192`, `git diff HEAD`)
+
 ## [0.5.0] - 2026-03-14
 
 ### Added

@@ -97,7 +97,7 @@ public class PaymentService {
                     .accessToken(accessToken)
                     .build();
 
-            payment = client.get(Long.parseLong(dataId), requestOptions);
+            payment = client.get(Long.valueOf(Long.parseLong(dataId)), requestOptions);
         } catch (MPException | MPApiException e) {
             log.error("Error getting payment for {}: {}", dataId, e.getMessage());
             return;
@@ -184,9 +184,9 @@ public class PaymentService {
         String[] parts = externalReference.split(EXTERNAL_REFERENCE_SEPARATOR);
         if (parts.length == EXPECTED_PARTS_LENGTH) {
             try {
-                Long chequeraCuotaId = Long.parseLong(parts[1]);
+                Long chequeraCuotaId = (Long) Long.parseLong(parts[1]);
                 log.debug("PaymentReferenceData - ChequeraCuotaId -> {}", chequeraCuotaId);
-                Long mercadoPagoContextId = Long.parseLong(parts[2]);
+                Long mercadoPagoContextId = (Long) Long.parseLong(parts[2]);
                 log.debug("PaymentReferenceData - MercadoPagoContextId -> {}", mercadoPagoContextId);
                 return new PaymentReferenceData(chequeraCuotaId, mercadoPagoContextId);
             } catch (NumberFormatException e) {
