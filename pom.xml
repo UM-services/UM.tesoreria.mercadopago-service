@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.2</version>
+		<version>4.0.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>um.tesoreria</groupId>
 	<artifactId>mercadopago-service</artifactId>
-	<version>0.5.0</version>
+	<version>0.5.1</version>
 	<name>UM.tesoreria.mercadopago-service</name>
 	<description>um.tesoreria.mercadopago-service</description>
 	<url/>
@@ -71,7 +71,7 @@
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>3.0.1</version>
+			<version>3.0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -138,6 +138,11 @@
 				<version>${spring-cloud.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.codehaus.plexus</groupId>
+				<artifactId>plexus-utils</artifactId>
+				<version>4.0.2</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
