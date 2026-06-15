@@ -9,7 +9,7 @@ sequenceDiagram
     participant MP_API as "API de Mercado Pago"
 
     Usuario->>Frontend: 1. Selecciona chequera a pagar
-    Frontend->>PreferenceController: 2. POST /api/v1/preferences (UMPreferenceMPDto)
+    Frontend->>PreferenceController: 2. POST /api/tesoreria/mercadopago/preference/create (UMPreferenceMPDto)
     PreferenceController->>PreferenceService: 3. createPreference(dto)
     
     PreferenceService->>ChequeraService: 4. getChequera(chequeraId)

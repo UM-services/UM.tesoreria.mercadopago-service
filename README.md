@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.6.0 _(fuente: pom.xml)_
+- **Versión actual:** 0.6.1 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -23,9 +23,8 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 - Java 25 _(fuente: pom.xml)_
 - Spring Boot 4.1.0 _(fuente: pom.xml)_
 - Spring Cloud 2025.1.2 _(fuente: pom.xml)_
-- MercadoPago SDK 2.8.0 _(fuente: pom.xml)_
-- Springdoc OpenAPI 3.0.2 _(fuente: pom.xml)_
-- Base de datos PostgreSQL
+- MercadoPago SDK 3.2.1 _(fuente: pom.xml)_
+- Springdoc OpenAPI 3.0.3 _(fuente: pom.xml)_
 
 ## Configuración
 
@@ -49,24 +48,15 @@ CHEQUERA_SERVICE_URL=http://localhost:8080
 
 ## Uso
 
-El servicio expone endpoints REST para la gestión de preferencias de pago:
+El servicio expone endpoints REST para la gestión de preferencias de pago y pagos:
 
-- `POST /api/v1/preferences`: Crear una nueva preferencia
-- `PUT /api/v1/preferences/{id}`: Actualizar una preferencia existente
-- `GET /api/v1/preferences/{id}`: Obtener una preferencia específica
-
-### Ejemplo de Uso
-
-```java
-// Crear una preferencia
-PreferenceRequest request = PreferenceRequest.builder()
-    .items(List.of(item))
-    .payer(payer)
-    .paymentMethods(paymentMethods)
-    .build();
-
-Preference preference = preferenceService.createPreference(request);
-```
+- `POST /api/tesoreria/mercadopago/preference/create`: Crear una nueva preferencia de pago
+- `GET /api/tesoreria/mercadopago/preference/retrieve/{preferenceId}`: Obtener una preferencia específica
+- `POST /api/tesoreria/mercadopago/payment/listener`: Webhook de notificaciones de pago (IPN)
+- `GET /api/tesoreria/mercadopago/payment/update/{dataId}`: Forzar actualización de un pago
+- `GET /api/tesoreria/mercadopago/chequera/create/context/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}`: Crear preferencias para cuotas pendientes
+- `GET /api/tesoreria/mercadopago/checking/cuota/{chequeraCuotaId}`: Verificar/renovar cuota individual
+- `GET /api/tesoreria/mercadopago/checking/all/active`: Verificar todas las preferencias activas
 
 ## Logging
 
@@ -96,8 +86,8 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.2-blue?logo=spring)](https://spring.io/projects/spring-cloud)
-[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-2.8.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
-[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.2-green?logo=openapi-initiative)](https://www.openapis.org/)
+[![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-3.2.1-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
+[![OpenAPI](https://img.shields.io/badge/OpenAPI-3.0.3-green?logo=openapi-initiative)](https://www.openapis.org/)
 [![Maven](https://img.shields.io/badge/Maven-3.9+-purple?logo=apache-maven)](https://maven.apache.org/)
 
 ## Autor ✍️
@@ -129,9 +119,9 @@ El estado actual del proyecto, incluyendo issues activos y milestones, se puede 
 - Java 25 _(fuente: pom.xml)_
 - Spring Boot 4.1.0 _(fuente: pom.xml)_
 - Spring Cloud 2025.1.2 _(fuente: pom.xml)_
-- MercadoPago SDK Java 2.8.0 _(fuente: pom.xml)_
+- MercadoPago SDK Java 3.2.1 _(fuente: pom.xml)_
 - Caffeine (para caché)
-- Springdoc OpenAPI 3.0.2 _(fuente: pom.xml)_
+- Springdoc OpenAPI 3.0.3 _(fuente: pom.xml)_
 
 ## Endpoints
 
