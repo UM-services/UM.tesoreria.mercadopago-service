@@ -2,6 +2,13 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.6.1] - 2026-06-15
+
+### Changed
+- chore(deps): Actualización de MercadoPago SDK de 2.8.0 a 3.2.1 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de SpringDoc OpenAPI de 3.0.2 a 3.0.3 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de plexus-utils de 4.0.2 a 4.0.3 (fuente: `pom.xml`, `git diff HEAD`)
+
 ## [0.6.0] - 2026-06-14
 
 ### Changed
