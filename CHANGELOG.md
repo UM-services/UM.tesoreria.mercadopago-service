@@ -2,6 +2,20 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.6.0] - 2026-06-14
+
+### Changed
+- chore(deps): Actualización de Spring Boot de 4.0.5 a 4.1.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de Spring Cloud de 2025.1.0 a 2025.1.2 (fuente: `pom.xml`, `git diff HEAD`)
+- refactor(dto): Migración de `@Data` a `@Getter` + `@Setter` + `@Builder` en todos los DTOs para usar patrón builder explícito (fuente: `src/main/java/um/tesoreria/mercadopago/service/domain/dto/*.java`, `git diff HEAD`)
+- fix(dto): Corrección de formato ISO 8601 en campos `OffsetDateTime` — cambio de patrón `Z` (RFC 822, ej: `+0000`) a `XX` (ISO 8601, ej: `+00:00`) (fuente: `src/main/java/um/tesoreria/mercadopago/service/domain/dto/*.java`, `git diff HEAD`)
+- chore(actions): Actualización de `actions/upload-pages-artifact@v3` a `v4` (fuente: `.github/workflows/generate-docs.yml`, `git diff HEAD`)
+- chore(banner): Limpieza del banner de la aplicación (fuente: `src/main/resources/banner.txt`, `git diff HEAD`)
+
+### Breaking Changes
+- Los DTOs ya no incluyen `toString()`, `equals()` y `hashCode()` generados por `@Data`. Ahora usan `@Getter` + `@Setter` + `@Builder`.
+- El formato de fecha en JSON cambió de `yyyy-MM-dd'T'HH:mm:ssZ` (ej: `2026-06-14T12:00:00+0000`) a `yyyy-MM-dd'T'HH:mm:ssXX` (ej: `2026-06-14T12:00:00+00:00`). Los consumidores deben actualizar sus parsers.
+
 ## [0.5.1] - 2026-04-04
 
 ### Changed
