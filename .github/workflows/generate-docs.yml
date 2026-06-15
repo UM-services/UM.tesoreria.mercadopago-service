@@ -77,6 +77,7 @@ jobs:
               <div id="architecture" class="section"></div>
               <div id="sequence-diagram" class="section"></div>
               <div id="erd-diagram" class="section"></div>
+              <div id="vacante-sequence-diagram" class="section"></div>
               <div id="deployment-diagram" class="section"></div>
               <div id="dependencies" class="section">
                   <h2>🌳 Grafo de Dependencias</h2>
@@ -148,6 +149,15 @@ jobs:
                       const erdContainer = document.getElementById('erd-diagram');
                       erdContainer.innerHTML = '<h2>🗃️ Modelo de Datos Principal (DTOs)</h2><div class="mermaid">' + data + '</div>';
                       mermaid.init(undefined, erdContainer.querySelector('.mermaid'));
+                  });
+
+              // --- Vacante Sequence Diagram ---
+              fetch('diagrams/flujo-creacion-vacante.mmd')
+                  .then(response => response.text())
+                  .then(data => {
+                      const vacanteContainer = document.getElementById('vacante-sequence-diagram');
+                      vacanteContainer.innerHTML = '<h2>🔄 Diagrama de Secuencia: Creación de Preferencia de Vacante</h2><div class="mermaid">' + data + '</div>';
+                      mermaid.init(undefined, vacanteContainer.querySelector('.mermaid'));
                   });
 
               // --- Deployment Diagram ---

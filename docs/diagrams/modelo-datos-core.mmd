@@ -2,43 +2,138 @@ erDiagram
     title Modelo de Datos Principal (DTOs)
 
     UMPreferenceMPDto {
-        int chequeraId "FK a Chequera"
-        string tipo "Tipo de preferencia"
-        string back_url_success
-        string back_url_pending
-        string back_url_failure
-        string notification_url
+        MercadoPagoContextDto mercadoPagoContext
+        ChequeraCuotaDto chequeraCuota
+        ReservaVacante reservaVacante
     }
 
-    ChequeraDto {
-        int id PK
-        string descripcion
-        double importe
+    MercadoPagoContextDto {
+        long mercadoPagoContextId PK
+        long chequeraCuotaId
+        UUID reservaVacanteId
+        string initPoint
+        OffsetDateTime fechaVencimiento
+        BigDecimal importe
+        byte changed
+        OffsetDateTime lastVencimientoUpdated
+        string preferenceId
+        string preference
+        byte activo
+        long chequeraPagoId
+        string idMercadoPago
+        string status
+        OffsetDateTime fechaPago
+        OffsetDateTime fechaAcreditacion
+        BigDecimal importePagado
+        string payment
+        ChequeraCuotaDto chequeraCuota
+        ReservaVacante reservaVacante
     }
 
-    PersonaDto {
-        int id PK
+    ChequeraCuotaDto {
+        long chequeraCuotaId PK
+        long chequeraId
+        int facultadId
+        int tipoChequeraId
+        long chequeraSerieId
+        int productoId
+        int alternativaId
+        int cuotaId
+        int mes
+        int anho
+        int arancelTipoId
+        OffsetDateTime vencimiento1
+        BigDecimal importe1
+        OffsetDateTime vencimiento2
+        BigDecimal importe2
+        OffsetDateTime vencimiento3
+        BigDecimal importe3
+        string codigoBarras
+        byte pagado
+        byte baja
+        int tramoId
+        FacultadDto facultad
+        TipoChequeraDto tipoChequera
+        ProductoDto producto
+        ChequeraSerieDto chequeraSerie
+    }
+
+    ReservaVacante {
+        UUID reservaVacanteId PK
+        long personaUniqueId
+        UUID campanhaId
+        string estado
+        BigDecimal importe
+        OffsetDateTime vencimiento
+        Campanha campanha
+        PersonaDto persona
+        DomicilioDto domicilio
+    }
+
+    Campanha {
+        UUID campanhaId PK
         string nombre
-        string apellido
-        string nroDocumento
-        string email
+        byte activa
+        BigDecimal valorReserva
     }
 
-    ProductoDto {
-        int id PK
-        string nombre
-        string descripcion
+    ChequeraSerieDto {
+        int facultadId
+        int tipoChequeraId
+        int chequeraSerieId
+        int productoId
+        int alternativaId
+        byte algoPagado
+        byte hpum
+        BigDecimal becaPorcentaje
+        string becaResolucion
+        OffsetDateTime becaFecha
+        FacultadDto facultad
+        PersonaDto persona
+        DomicilioDto domicilio
     }
 
     ChequeraPagoDto {
-        int id PK
+        int chequeraPagoId PK
         long mercadoPagoPaymentId
         string status
-        datetime fechaCreacion
+        OffsetDateTime fechaCreacion
         double totalPagado
     }
 
-    UMPreferenceMPDto ||--o{ ChequeraDto : "define_para"
-    ChequeraDto ||--|{ PersonaDto : "pertenece_a"
-    ChequeraDto ||--|{ ProductoDto : "contiene"
-    ChequeraPagoDto }o--|| ChequeraDto : "registra_pago_de"
+    PersonaDto {
+        long personaId PK
+        string apellido
+        string nombre
+        string cuit
+    }
+
+    ProductoDto {
+        int productoId PK
+        string nombre
+    }
+
+    FacultadDto {
+        int facultadId PK
+        string nombre
+    }
+
+    DomicilioDto {
+        long domicilioId PK
+        string emailPersonal
+        string emailInstitucional
+    }
+
+    UMPreferenceMPDto ||--|| MercadoPagoContextDto : "contiene"
+    UMPreferenceMPDto ||--o{ ChequeraCuotaDto : "define_para_cuota"
+    UMPreferenceMPDto ||--o{ ReservaVacante : "define_para_vacante"
+    MercadoPagoContextDto ||--o{ ChequeraCuotaDto : "ref"
+    MercadoPagoContextDto ||--o{ ReservaVacante : "ref"
+    ChequeraCuotaDto ||--|| ProductoDto : "incluye"
+    ChequeraCuotaDto ||--|| ChequeraSerieDto : "pertenece_a"
+    ChequeraSerieDto ||--|| PersonaDto : "titular"
+    ChequeraSerieDto ||--|| DomicilioDto : "domicilio"
+    ChequeraSerieDto ||--|| FacultadDto : "facultad"
+    ReservaVacante ||--|| Campanha : "campanha"
+    ReservaVacante ||--|| PersonaDto : "persona"
+    ReservaVacante ||--|| DomicilioDto : "domicilio"

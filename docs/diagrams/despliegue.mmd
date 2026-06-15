@@ -3,16 +3,17 @@ deploymentDiagram
 
     node "Servidor UM" {
         artifact "mercadopago-service.jar" {
-            component "Spring Boot App"
+            component "Spring Boot 4.1 App"
         }
-        database "Base de Datos (Externa)" as DB {
-            component "Datos de Tesorería"
-        }
+    }
+
+    node "Backend Tesorería Core" {
+        component "tesoreria-core-service" as CORE
     }
 
     node "Plataforma Mercado Pago" {
         component "API de Mercado Pago" as MP_API
     }
 
-    "Spring Boot App" -->> MP_API : "HTTPS/REST"
-    "Spring Boot App" -->> DB : "JDBC"
+    "Spring Boot 4.1 App" -->> MP_API : "HTTPS/REST"
+    "Spring Boot 4.1 App" -->> CORE : "Feign Client / HTTP"
