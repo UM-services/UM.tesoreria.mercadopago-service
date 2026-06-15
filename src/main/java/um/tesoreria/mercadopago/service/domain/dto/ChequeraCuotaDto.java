@@ -1,18 +1,19 @@
 package um.tesoreria.mercadopago.service.domain.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import um.tesoreria.mercadopago.service.util.Jsonifier;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
-@Data
+@Getter
+@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChequeraCuotaDto {
+
     private Long chequeraCuotaId;
     private Long chequeraId;
     private Integer facultadId;
@@ -25,17 +26,17 @@ public class ChequeraCuotaDto {
     private Integer anho = 0;
     private Integer arancelTipoId;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXX", timezone = "UTC")
     private OffsetDateTime vencimiento1;
     private BigDecimal importe1 = BigDecimal.ZERO;
     private BigDecimal importe1Original = BigDecimal.ZERO;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXX", timezone = "UTC")
     private OffsetDateTime vencimiento2;
     private BigDecimal importe2 = BigDecimal.ZERO;
     private BigDecimal importe2Original = BigDecimal.ZERO;
     
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssZ", timezone = "UTC")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXX", timezone = "UTC")
     private OffsetDateTime vencimiento3;
     private BigDecimal importe3 = BigDecimal.ZERO;
     private BigDecimal importe3Original = BigDecimal.ZERO;

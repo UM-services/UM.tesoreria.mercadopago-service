@@ -5,12 +5,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.5</version>
+		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>um.tesoreria</groupId>
 	<artifactId>mercadopago-service</artifactId>
-	<version>0.5.1</version>
+	<version>0.6.0</version>
 	<name>UM.tesoreria.mercadopago-service</name>
 	<description>um.tesoreria.mercadopago-service</description>
 	<url/>
@@ -28,7 +28,7 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
-		<spring-cloud.version>2025.1.0</spring-cloud.version>
+		<spring-cloud.version>2025.1.2</spring-cloud.version>
 		<sonar.organization>um-services</sonar.organization>
 		<sonar.projectKey>UM-services_UM.tesoreria.mercadopago-service</sonar.projectKey>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
