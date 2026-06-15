@@ -1,0 +1,32 @@
+sequenceDiagram
+    title Flujo de Creación de Preferencia de Pago (Vacantes)
+
+    actor Usuario
+    participant Frontend as "Interfaz de Usuario"
+    participant VacanteController as "PreferenceVacanteController"
+    participant VacanteService as "PreferenceVacanteService"
+    participant PrefService as "PreferenceService (hexagonal)"
+    participant MP_API as "API de Mercado Pago"
+
+    Usuario->>Frontend: 1. Solicita reservar una vacante
+    Frontend->>VacanteController: 2. POST /api/tesoreria/mercadopago/vacante/preference/create
+    VacanteController->>VacanteService: 3. createPreference(dto)
+    
+    alt InitPoint exists
+        VacanteService-->>VacanteController: 4. Retorna contexto existente
+    else Nueva preferencia
+        VacanteService->>PrefService: 4. setAccessTokenAndLog()
+        VacanteService->>PrefService: 5. buildPreferenceRequest(dto, null)
+        PrefService->>PrefService: 6. Crea item (vacante), payer, paymentMethods
+        PrefService-->>VacanteService: 7. PreferenceRequest
+        
+        VacanteService->>PrefService: 8. createAndLogPreference(request, context)
+        PrefService->>MP_API: 9. POST /checkout/preferences
+        MP_API-->>PrefService: 10. init_point, preferenceId
+        
+        PrefService-->>VacanteService: 11. MercadoPagoContext actualizado
+    end
+    
+    VacanteService-->>VacanteController: 12. MercadoPagoContextDto
+    VacanteController-->>Frontend: 13. Responde con datos de preferencia
+    Frontend->>Usuario: 14. Redirige a URL de Mercado Pago

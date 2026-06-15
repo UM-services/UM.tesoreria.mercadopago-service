@@ -4,26 +4,28 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.6.1 _(fuente: pom.xml)_
+- **Versión actual:** 0.7.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
-- Gestión de preferencias de pago en MercadoPago
+- Gestión de preferencias de pago en MercadoPago (cuotas y reserva de vacantes)
+- Arquitectura hexagonal con separación de responsabilidades
 - Configuración de métodos de pago por tipo de chequera
-- Soporte para tarjetas de crédito con configuración específica
-- Manejo robusto de errores y logging detallado mejorado con serialización JSON centralizada
-- Integración con sistema de chequeras
+- Soporte para tarjetas de crédito con configuración específica (cuotas, monto máximo)
+- Manejo robusto de errores y logging detallado con serialización JSON centralizada
+- Integración con sistema de chequeras y reserva de vacantes
 - Soporte para copias de email en notificaciones
 - Registro de última actualización de vencimiento de preferencias
 - Envío automático de notificaciones de cuota para usuarios específicos
 - Tareas programadas para verificación automática diaria
+- Soporte para eventos Kafka con serialización Jackson
 
 ## Requisitos
 
 - Java 25 _(fuente: pom.xml)_
 - Spring Boot 4.1.0 _(fuente: pom.xml)_
 - Spring Cloud 2025.1.2 _(fuente: pom.xml)_
-- MercadoPago SDK 3.2.1 _(fuente: pom.xml)_
+- MercadoPago SDK Java 3.2.1 _(fuente: pom.xml)_
 - Springdoc OpenAPI 3.0.3 _(fuente: pom.xml)_
 
 ## Configuración
@@ -35,26 +37,32 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 MERCADOPAGO_ACCESS_TOKEN=your_access_token
 MERCADOPAGO_PUBLIC_KEY=your_public_key
 
-# Base de Datos
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=mercadopago_db
-DB_USER=user
-DB_PASSWORD=password
+# Servicios (Feign Clients)
+TESORERIA_CORE_SERVICE_URL=http://tesoreria-core-service:8080
 
-# Servicios
-CHEQUERA_SERVICE_URL=http://localhost:8080
+# Kafka (opcional)
+SPRING_KAFKA_BOOTSTRAP_SERVERS=localhost:9092
 ```
 
 ## Uso
 
 El servicio expone endpoints REST para la gestión de preferencias de pago y pagos:
 
-- `POST /api/tesoreria/mercadopago/preference/create`: Crear una nueva preferencia de pago
+### Preferencias (Cuotas)
+- `POST /api/tesoreria/mercadopago/preference/create`: Crear una nueva preferencia de pago para cuota
 - `GET /api/tesoreria/mercadopago/preference/retrieve/{preferenceId}`: Obtener una preferencia específica
+
+### Preferencias (Vacantes)
+- `POST /api/tesoreria/mercadopago/vacante/preference/create`: Crear una nueva preferencia de pago para reserva de vacante
+
+### Pagos
 - `POST /api/tesoreria/mercadopago/payment/listener`: Webhook de notificaciones de pago (IPN)
 - `GET /api/tesoreria/mercadopago/payment/update/{dataId}`: Forzar actualización de un pago
+
+### Chequeras
 - `GET /api/tesoreria/mercadopago/chequera/create/context/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}`: Crear preferencias para cuotas pendientes
+
+### Verificación
 - `GET /api/tesoreria/mercadopago/checking/cuota/{chequeraCuotaId}`: Verificar/renovar cuota individual
 - `GET /api/tesoreria/mercadopago/checking/all/active`: Verificar todas las preferencias activas
 
@@ -84,6 +92,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
+[![Version](https://img.shields.io/badge/Version-0.7.0-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.2-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-3.2.1-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)

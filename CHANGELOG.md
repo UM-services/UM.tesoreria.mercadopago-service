@@ -2,6 +2,39 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.7.0] - 2026-06-15
+
+### Added
+- feat(hexagonal): Nueva arquitectura hexagonal para gestión de preferencias con separación en `PreferenceCuotaService` (cuotas) y `PreferenceVacanteService` (vacantes) (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/**`, `git diff HEAD`)
+- feat(vacante): Nuevo endpoint `POST /api/tesoreria/mercadopago/vacante/preference/create` para creación de preferencias de reserva de vacantes (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/vacante/**`, `git diff HEAD`)
+- feat(vacante): Nuevos modelos de dominio `ReservaVacante` y `Campanha` para el flujo de reserva de vacantes (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/vacante/domain/model/**`, `git diff HEAD`)
+- feat(dto): Nuevo campo `reservaVacanteId` (UUID) en `MercadoPagoContextDto` para vincular contexto de pago con reserva de vacante (fuente: `src/main/java/um/tesoreria/mercadopago/domain/dto/MercadoPagoContextDto.java`, `git diff HEAD`)
+- feat(dto): Nuevos campos `chequeraCuota` y `reservaVacante` en `MercadoPagoContextDto` (fuente: `src/main/java/um/tesoreria/mercadopago/domain/dto/MercadoPagoContextDto.java`, `git diff HEAD`)
+- feat(dto): Nuevo campo `reservaVacante` en `UMPreferenceMPDto` (fuente: `src/main/java/um/tesoreria/mercadopago/domain/dto/UMPreferenceMPDto.java`, `git diff HEAD`)
+- feat(kafka): Cambio de serializador Kafka de `JsonSerializer` a `JacksonJsonSerializer` (fuente: `src/main/java/um/tesoreria/mercadopago/configuration/KafkaConfiguration.java`, `git diff HEAD`)
+- feat(dto): Añadidas anotaciones `@Builder.Default` en múltiples DTOs para valores por defecto en constructores builder (ArancelTipoDto, ChequeraCuotaDto, ChequeraSerieDto, ClaseChequeraDto, DomicilioDto, FacultadDto, GeograficaDto, LectivoDto, PersonaDto, ProductoDto) (fuente: `src/main/java/um/tesoreria/mercadopago/domain/dto/*.java`, `git diff HEAD`)
+- feat(service): Actualización de `externalReference` para incluir `reservaVacanteId` en el nuevo flujo de preferencias (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/service/PreferenceService.java`, `git diff HEAD`)
+
+### Changed
+- refactor(package): Migración masiva del paquete base de `um.tesoreria.mercadopago.service` a `um.tesoreria.mercadopago` — todos los controladores, servicios, clientes, configuraciones, DTOs, eventos y utilidades reubicados (fuente: `git diff HEAD`, todos los archivos `.java`)
+- refactor(service): `PreferenceService` monolítico original dividido en tres clases especializadas:
+  - `PreferenceCuotaService` — lógica de preferencias para cuotas
+  - `PreferenceVacanteService` — lógica de preferencias para vacantes
+  - `PreferenceService` (hexagonal) — servicios comunes compartidos (buildPreferenceRequest, createAndLogPreference, etc.)
+  (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/**`, `git diff HEAD`)
+- refactor(controller): `PreferenceController` reemplazado por `PreferenceCuotaController` con `@RequiredArgsConstructor` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/cuota/infrastructure/web/controller/PreferenceCuotaController.java`, `git diff HEAD`)
+- refactor(service): `CheckingService` y `ChequeraService` ahora inyectan `PreferenceCuotaService` en lugar del antiguo `PreferenceService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/*.java`, `git diff HEAD`)
+- refactor(config): `@EnableFeignClients` actualizado de `um.tesoreria.mercadopago.service.client` a `um.tesoreria.mercadopago.client` (fuente: `src/main/java/um/tesoreria/mercadopago/configuration/MercadoPagoConfiguration.java`, `git diff HEAD`)
+
+### Removed
+- refactor(controller): Eliminado `PreferenceController` antiguo (fuente: `src/main/java/um/tesoreria/mercadopago/service/controller/PreferenceController.java`, `git diff HEAD`)
+- refactor(service): Eliminado `PreferenceService` monolítico antiguo (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+
+### Breaking Changes
+- Todos los imports de `um.tesoreria.mercadopago.service.*` deben actualizarse a `um.tesoreria.mercadopago.*`. Cualquier código externo que importe clases del paquete `service` se verá afectado.
+- `PreferenceService` ha sido reemplazado por `PreferenceCuotaService` (para cuotas) y `PreferenceVacanteService` (para vacantes).
+- El endpoint `POST /api/tesoreria/mercadopago/preference/create` ahora es manejado por `PreferenceCuotaController` en lugar del antiguo `PreferenceController`.
+
 ## [0.6.1] - 2026-06-15
 
 ### Changed
