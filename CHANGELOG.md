@@ -2,6 +2,11 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.7.1] - 2026-06-16
+
+### Fixed
+- fix(service): Corregido `createExternalReference` en `PreferenceService` para usar `chequeraCuotaId` en el flujo de cuotas y `reservaVacanteId` en el flujo de vacantes (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/service/PreferenceService.java:124-132`, `git diff HEAD`)
+
 ## [0.7.0] - 2026-06-15
 
 ### Added
