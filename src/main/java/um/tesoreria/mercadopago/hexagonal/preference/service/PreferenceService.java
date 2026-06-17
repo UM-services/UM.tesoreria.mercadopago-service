@@ -123,7 +123,11 @@ public class PreferenceService {
 
     private String createExternalReference(UMPreferenceMPDto umPreferenceMPDto) {
         log.debug("\n\nProcessing PreferenceService.createExternalReference\n\n");
-        return String.format(umPreferenceMPDto.getReservaVacante().getReservaVacanteId()
+        if (umPreferenceMPDto.getChequeraCuota() == null) {
+            return String.format(umPreferenceMPDto.getReservaVacante().getReservaVacanteId()
+                    + "-" + umPreferenceMPDto.getMercadoPagoContext().getMercadoPagoContextId());
+        }
+        return String.format(umPreferenceMPDto.getChequeraCuota().getChequeraCuotaId()
                 + "-" + umPreferenceMPDto.getMercadoPagoContext().getMercadoPagoContextId());
     }
 
