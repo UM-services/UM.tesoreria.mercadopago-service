@@ -12,7 +12,7 @@ sequenceDiagram
     Frontend->>CuotaController: 2. POST /api/tesoreria/mercadopago/preference/create
     CuotaController->>CuotaService: 3. createPreference(dto)
     
-    CuotaService->>PrefService: 4. buildPreferenceRequest(dto, tipoChequeraContext)
+    CuotaService->>PrefService: 4. buildPreferenceRequest(dto, tipoChequeraContext, false)  // con restricciones
     PrefService->>PrefService: 5. Crea item, payer, paymentMethods
     PrefService-->>CuotaService: 6. PreferenceRequest
     

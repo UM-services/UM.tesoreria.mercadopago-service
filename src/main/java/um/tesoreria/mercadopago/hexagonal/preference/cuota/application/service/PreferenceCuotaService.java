@@ -53,7 +53,7 @@ public class PreferenceCuotaService {
         var tipoChequeraContext = getTipoChequeraContext(chequeraCuota.getTipoChequeraId(),
                 chequeraCuota.getAlternativaId());
         preferenceService.setAccessTokenAndLog();
-        PreferenceRequest preferenceRequest = preferenceService.buildPreferenceRequest(umPreferenceMPDto, tipoChequeraContext);
+        PreferenceRequest preferenceRequest = preferenceService.buildPreferenceRequest(umPreferenceMPDto, tipoChequeraContext, false);
         assert mercadoPagoContext != null;
         return preferenceService.createAndLogPreference(preferenceRequest, mercadoPagoContext);
     }
@@ -95,7 +95,7 @@ public class PreferenceCuotaService {
                 .email(payer.getEmail())
                 .build();
 
-        var paymentMethods = preferenceService.createPaymentMethodsRequest(tipoChequeraContext);
+        var paymentMethods = preferenceService.createPaymentMethodsRequest(tipoChequeraContext, false);
          log.debug("PaymentMethods -> {}", Jsonifier.builder(paymentMethods).build());
         // Crear un nuevo objeto PreferenceRequest con los valores actualizados
         PreferenceRequest updatedPreferenceRequest = PreferenceRequest.builder()

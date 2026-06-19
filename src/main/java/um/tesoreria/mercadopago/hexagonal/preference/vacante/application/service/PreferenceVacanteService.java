@@ -30,7 +30,7 @@ public class PreferenceVacanteService {
         }
         var reservaVacante = umPreferenceMPDto.getReservaVacante();
         preferenceService.setAccessTokenAndLog();
-        PreferenceRequest preferenceRequest = preferenceService.buildPreferenceRequest(umPreferenceMPDto, null);
+        PreferenceRequest preferenceRequest = preferenceService.buildPreferenceRequest(umPreferenceMPDto, null, true);
         assert mercadoPagoContext != null;
         return preferenceService.createAndLogPreference(preferenceRequest, mercadoPagoContext);
     }

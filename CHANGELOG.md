@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.8.0] - 2026-06-19
+
+### Added
+- feat(preference): Nuevo parámetro `sinRestricciones` en `PreferenceService.buildPreferenceRequest()` y `createPaymentMethodsRequest()`. Cuando es `true`, genera preferencias sin exclusiones de medios de pago (sin límite de cuotas, sin excluir ticket/prepaid_card) (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/service/PreferenceService.java`, `git diff HEAD`)
+- feat(vacante): `PreferenceVacanteService` ahora crea preferencias sin restricciones de medios de pago (`sinRestricciones=true`) para el flujo de reserva de vacantes (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/vacante/application/service/PreferenceVacanteService.java`, `git diff HEAD`)
+
+### Changed
+- refactor(cuota): `PreferenceCuotaService` actualizado para usar `sinRestricciones=false`, preservando el comportamiento existente con exclusiones de medios de pago (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/preference/cuota/application/service/PreferenceCuotaService.java`, `git diff HEAD`)
+
 ## [0.7.1] - 2026-06-16
 
 ### Fixed
