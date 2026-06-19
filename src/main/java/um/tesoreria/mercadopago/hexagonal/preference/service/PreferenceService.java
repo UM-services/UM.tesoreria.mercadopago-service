@@ -38,7 +38,8 @@ public class PreferenceService {
     }
 
     public PreferenceRequest buildPreferenceRequest(UMPreferenceMPDto umPreferenceMPDto,
-                                                     TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext) {
+                                                    TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext,
+                                                    Boolean sinRestricciones) {
         log.debug("\n\nProcessing PreferenceCuotaService.buildPreferenceRequest\n\n");
         PreferenceItemRequest itemRequest = createItemRequest(umPreferenceMPDto);
         List<PreferenceItemRequest> itemRequests = List.of(itemRequest);
@@ -46,7 +47,7 @@ public class PreferenceService {
         PreferencePayerRequest payer = createPayerRequest(umPreferenceMPDto);
         String externalReference = createExternalReference(umPreferenceMPDto);
         PreferenceBackUrlsRequest backUrls = createBackUrlsRequest();
-        PreferencePaymentMethodsRequest paymentMethods = createPaymentMethodsRequest(tipoChequeraContext);
+        PreferencePaymentMethodsRequest paymentMethods = createPaymentMethodsRequest(tipoChequeraContext, sinRestricciones);
 
         var fechaVencimientoMP = DateToolMP
                 .convertToMPDate(umPreferenceMPDto.getMercadoPagoContext().getFechaVencimiento());
@@ -141,8 +142,15 @@ public class PreferenceService {
     }
 
     public PreferencePaymentMethodsRequest createPaymentMethodsRequest(
-            TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext) {
+            TipoChequeraMercadoPagoCreditCardDto tipoChequeraContext, Boolean sinRestricciones) {
         log.debug("\n\nProcessing PreferenceService.createPaymentMethodsRequest\n\n");
+        if (Boolean.TRUE.equals(sinRestricciones)) {
+            return PreferencePaymentMethodsRequest.builder()
+                    .excludedPaymentTypes(List.of())
+                    .installments(null)
+                    .defaultInstallments(null)
+                    .build();
+        }
         List<PreferencePaymentTypeRequest> excludedPaymentTypes = new ArrayList<>(List.of(
                 PreferencePaymentTypeRequest.builder().id("ticket").build(),
                 PreferencePaymentTypeRequest.builder().id("prepaid_card").build()));

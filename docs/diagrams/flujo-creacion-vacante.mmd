@@ -16,8 +16,8 @@ sequenceDiagram
         VacanteService-->>VacanteController: 4. Retorna contexto existente
     else Nueva preferencia
         VacanteService->>PrefService: 4. setAccessTokenAndLog()
-        VacanteService->>PrefService: 5. buildPreferenceRequest(dto, null)
-        PrefService->>PrefService: 6. Crea item (vacante), payer, paymentMethods
+        VacanteService->>PrefService: 5. buildPreferenceRequest(dto, null, true)  // sin restricciones
+        PrefService->>PrefService: 6. Crea item (vacante), payer, paymentMethods (sin restricciones)
         PrefService-->>VacanteService: 7. PreferenceRequest
         
         VacanteService->>PrefService: 8. createAndLogPreference(request, context)

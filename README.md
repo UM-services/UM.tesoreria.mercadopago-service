@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.7.1 _(fuente: pom.xml)_
+- **Versión actual:** 0.8.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -92,7 +92,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
-[![Version](https://img.shields.io/badge/Version-0.7.1-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
+[![Version](https://img.shields.io/badge/Version-0.8.0-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.2-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-3.2.1-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
