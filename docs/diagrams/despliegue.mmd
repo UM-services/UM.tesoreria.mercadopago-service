@@ -15,5 +15,5 @@ deploymentDiagram
         component "API de Mercado Pago" as MP_API
     }
 
-    "Spring Boot 4.1 App" -->> MP_API : "HTTPS/REST"
-    "Spring Boot 4.1 App" -->> CORE : "Feign Client / HTTP"
+    "Spring Boot 4.1 App" --> MP_API : "HTTPS/REST"
+    "Spring Boot 4.1 App" --> CORE : "Feign Client / HTTP"

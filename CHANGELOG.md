@@ -2,6 +2,11 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.8.2] - 2026-06-29
+
+### Fixed
+- fix(service): Corregido `parseExternalReference()` en `PaymentService` para aceptar external references de formato variable (2 o 3 partes). El método ahora soporta el formato corto `chequeraCuotaId-mercadoPagoContextId` (usado en flujo de cuotas) y el formato largo `prefijo-chequeraCuotaId-mercadoPagoContextId` (usado en flujo de vacantes). Eliminados casts redundantes `(Long)` en el parseo. (fuente: `src/main/java/um/tesoreria/mercadopago/service/PaymentService.java:183-203`, `git diff HEAD`)
+
 ## [0.8.1] - 2026-06-29
 
 ### Fixed
@@ -121,11 +126,26 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 ## [0.4.1] - 2026-02-05
 
 ### Fixed
+- fix(service): Restablecida validación de firma en PaymentService (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java`, `git diff HEAD`)
+
+### Changed
+- refactor(service): Añadido logging de debug para UMPreferenceMPDto en PreferenceService (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+
+## [0.4.0] - 2026-02-03
+
+### Fixed
 - fix(service): Eliminada lógica de envío de cuota para `personaId` específico en `PreferenceService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
 
 ### Changed
 - refactor(dto): Añadidas anotaciones `@Builder.Default` a campos en `MercadoPagoContextDto` y `TipoChequeraDto` para inicialización por defecto (fuente: `src/main/java/um/tesoreria/mercadopago/service/domain/dto/MercadoPagoContextDto.java`, `src/main/java/um/tesoreria/mercadopago/service/domain/dto/TipoChequeraDto.java`, `git diff HEAD`)
 - refactor(logging): Ajustes en mensajes de logging en `ChequeraService` y `PreferenceService` (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/ChequeraService.java`, `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
+- chore(deps): Actualización de Spring Boot de 3.5.8 a 4.0.2 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de Spring Cloud de 2025.0.0 a 2025.1.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de MercadoPago SDK de 2.5.0 a 2.8.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de SpringDoc OpenAPI de 2.8.10 a 3.0.1 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de commons-fileupload de 1.5 a 1.6.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de commons-beanutils de 1.9.4 a 1.11.0 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de commons-lang3 de 3.18.0 a 3.20.0 (fuente: `pom.xml`, `git diff HEAD`)
 
 ## [0.3.0] - 2025-11-14
 
@@ -196,25 +216,3 @@ Todos los cambios notables en este proyecto serán documentados en este archivo.
 
 - **Antiguo sistema de documentación:** Se ha eliminado el antiguo sistema de documentación basado en Jekyll.
 
-## [0.4.1] - 2026-02-05
-
-### Fixed
-- fix(service): Restablecida validación de firma en PaymentService (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PaymentService.java`, `git diff HEAD`)
-
-### Changed
-- refactor(service): Añadido logging de debug para UMPreferenceMPDto en PreferenceService (fuente: `src/main/java/um/tesoreria/mercadopago/service/service/PreferenceService.java`, `git diff HEAD`)
-
-## [0.4.0] - 2026-02-03
-
-### Changed
-- chore(deps): Actualización de Spring Boot de 3.5.8 a 4.0.2 (fuente: `pom.xml`, `git diff HEAD`)
-- chore(deps): Actualización de Spring Cloud de 2025.0.0 a 2025.1.0 (fuente: `pom.xml`, `git diff HEAD`)
-- chore(deps): Actualización de MercadoPago SDK de 2.5.0 a 2.8.0 (fuente: `pom.xml`, `git diff HEAD`)
-- chore(deps): Actualización de SpringDoc OpenAPI de 2.8.10 a 3.0.1 (fuente: `pom.xml`, `git diff HEAD`)
-- chore(deps): Actualización de commons-fileupload de 1.5 a 1.6.0 (fuente: `pom.xml`, `git diff HEAD`)
-- chore(deps): Actualización de commons-beanutils de 1.9.4 a 1.11.0 (fuente: `pom.xml`, `git diff HEAD`)
-- chore(deps): Actualización de commons-lang3 de 3.18.0 a 3.20.0 (fuente: `pom.xml`, `git diff HEAD`)
-
-#### Fuente de la información:
-- Los cambios y fechas provienen del análisis del código (`git diff HEAD`) y del historial (`git log`).
-- Las versiones de dependencias provienen del archivo `pom.xml`.

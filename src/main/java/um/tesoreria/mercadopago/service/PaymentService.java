@@ -185,11 +185,13 @@ public class PaymentService {
         log.debug("externalReference raw: '{}'", externalReference);
         String[] parts = externalReference.split(EXTERNAL_REFERENCE_SEPARATOR);
         log.debug("parts length: {}, expected: {}, parts: {}", parts.length, EXPECTED_PARTS_LENGTH, String.join(", ", parts));
-        if (parts.length == EXPECTED_PARTS_LENGTH) {
+        if (parts.length >= 2 && parts.length <= EXPECTED_PARTS_LENGTH) {
             try {
-                Long chequeraCuotaId = (Long) Long.parseLong(parts[1]);
+                int chequeraCuotaIndex = parts.length == EXPECTED_PARTS_LENGTH ? 1 : 0;
+                int mercadoPagoContextIndex = parts.length == EXPECTED_PARTS_LENGTH ? 2 : 1;
+                Long chequeraCuotaId = Long.parseLong(parts[chequeraCuotaIndex]);
                 log.debug("PaymentReferenceData - ChequeraCuotaId -> {}", chequeraCuotaId);
-                Long mercadoPagoContextId = (Long) Long.parseLong(parts[2]);
+                Long mercadoPagoContextId = Long.parseLong(parts[mercadoPagoContextIndex]);
                 log.debug("PaymentReferenceData - MercadoPagoContextId -> {}", mercadoPagoContextId);
                 return new PaymentReferenceData(chequeraCuotaId, mercadoPagoContextId);
             } catch (NumberFormatException e) {
