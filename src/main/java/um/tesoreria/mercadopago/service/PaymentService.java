@@ -97,7 +97,7 @@ public class PaymentService {
                     .accessToken(accessToken)
                     .build();
 
-            payment = client.get(Long.valueOf(Long.parseLong(dataId)), requestOptions);
+            payment = client.get(Long.parseLong(dataId), requestOptions);
         } catch (MPException | MPApiException e) {
             log.error("Error getting payment for {}: {}", dataId, e.getMessage());
             return;
@@ -171,6 +171,7 @@ public class PaymentService {
             return;
 
         String externalReference = payment.getExternalReference();
+        log.info("\nExternalReference: {}", externalReference);
         PaymentReferenceData referenceData = parseExternalReference(externalReference);
         if (referenceData == null)
             return;
@@ -181,7 +182,9 @@ public class PaymentService {
 
     private PaymentReferenceData parseExternalReference(String externalReference) {
         log.debug("Processing parseExternalReference");
+        log.debug("externalReference raw: '{}'", externalReference);
         String[] parts = externalReference.split(EXTERNAL_REFERENCE_SEPARATOR);
+        log.debug("parts length: {}, expected: {}, parts: {}", parts.length, EXPECTED_PARTS_LENGTH, String.join(", ", parts));
         if (parts.length == EXPECTED_PARTS_LENGTH) {
             try {
                 Long chequeraCuotaId = (Long) Long.parseLong(parts[1]);
@@ -193,7 +196,7 @@ public class PaymentService {
                 log.error("Error parsing reference numbers: {}", e.getMessage());
             }
         }
-        log.error("Formato inválido de externalReference: {}", externalReference);
+        log.error("Formato inválido de externalReference: {} -> {} parts (expected {})", externalReference, parts.length, EXPECTED_PARTS_LENGTH);
         return null;
     }
 
