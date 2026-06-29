@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.8.1] - 2026-06-29
+
+### Fixed
+- fix(service): Simplificada llamada `client.get()` eliminando wrapper redundante `Long.valueOf()` en `PaymentService.retrieveAndPublishPayment()` (fuente: `src/main/java/um/tesoreria/mercadopago/service/PaymentService.java:100`, `git diff HEAD`)
+
+### Changed
+- refactor(service): Mejorado logging en `processPaymentContext()` y `parseExternalReference()` de `PaymentService` para depuración de externalReference, incluyendo datos crudos, número de partes esperadas y mensaje de error detallado (fuente: `src/main/java/um/tesoreria/mercadopago/service/PaymentService.java:174-199`, `git diff HEAD`)
+
 ## [0.8.0] - 2026-06-19
 
 ### Added
