@@ -8,6 +8,7 @@ import um.tesoreria.mercadopago.util.Jsonifier;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -16,6 +17,7 @@ import java.time.OffsetDateTime;
 public class PaymentProcessedEvent {
     private Long mercadoPagoContextId;
     private Long chequeraCuotaId;
+    private UUID reservaVacanteId;
     private String paymentId;
     private String status;
     private String statusDetail;

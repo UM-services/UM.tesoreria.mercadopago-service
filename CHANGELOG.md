@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.9.0] - 2026-07-05
+
+### Added
+- feat(payment): `reservaVacanteId` (UUID) en `PaymentProcessedEvent` para identificar pagos de reserva de vacantes en eventos publicados a Kafka (fuente: `src/main/java/um/tesoreria/mercadopago/domain/event/PaymentProcessedEvent.java:20`, `git diff HEAD`)
+- feat(payment): Nuevo formato de `externalReference` de 6 partes (`UUID-mercadoPagoContextId`) en `PaymentService.parseExternalReference()` para soportar external references UUID del flujo de vacantes. El método distingue entre formato UUID (6 partes, para vacantes) y formato numérico (2-3 partes, para cuotas). Añadido `reservaVacanteId` al record `PaymentReferenceData` y propagado al evento `PaymentProcessedEvent` (fuente: `src/main/java/um/tesoreria/mercadopago/service/PaymentService.java:184-215`, `src/main/java/um/tesoreria/mercadopago/service/PaymentService.java:246`, `git diff HEAD`)
+
+### Changed
+- refactor(logging): Mejorados mensajes de log en `parseExternalReference()` para distinguir entre referencias de cuota y vacante (fuente: `src/main/java/um/tesoreria/mercadopago/service/PaymentService.java:195,205-207`, `git diff HEAD`)
+
 ## [0.8.2] - 2026-06-29
 
 ### Fixed
