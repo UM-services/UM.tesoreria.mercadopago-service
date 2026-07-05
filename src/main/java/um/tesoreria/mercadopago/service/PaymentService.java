@@ -21,6 +21,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -184,21 +185,32 @@ public class PaymentService {
         log.debug("Processing parseExternalReference");
         log.debug("externalReference raw: '{}'", externalReference);
         String[] parts = externalReference.split(EXTERNAL_REFERENCE_SEPARATOR);
-        log.debug("parts length: {}, expected: {}, parts: {}", parts.length, EXPECTED_PARTS_LENGTH, String.join(", ", parts));
-        if (parts.length >= 2 && parts.length <= EXPECTED_PARTS_LENGTH) {
+        log.debug("parts length: {}, parts: {}", parts.length, String.join(", ", parts));
+        
+        if (parts.length == 6) {
+            try {
+                String uuidString = String.join("-", parts[0], parts[1], parts[2], parts[3], parts[4]);
+                UUID reservaVacanteId = UUID.fromString(uuidString);
+                Long mercadoPagoContextId = Long.parseLong(parts[5]);
+                log.debug("PaymentReferenceData (Vacante) - ReservaVacanteId -> {}, MercadoPagoContextId -> {}", reservaVacanteId, mercadoPagoContextId);
+                return new PaymentReferenceData(null, mercadoPagoContextId, reservaVacanteId);
+            } catch (IllegalArgumentException e) {
+                log.error("Error parsing UUID from reference: {}", e.getMessage());
+            }
+        } else if (parts.length >= 2 && parts.length <= EXPECTED_PARTS_LENGTH) {
             try {
                 int chequeraCuotaIndex = parts.length == EXPECTED_PARTS_LENGTH ? 1 : 0;
                 int mercadoPagoContextIndex = parts.length == EXPECTED_PARTS_LENGTH ? 2 : 1;
                 Long chequeraCuotaId = Long.parseLong(parts[chequeraCuotaIndex]);
-                log.debug("PaymentReferenceData - ChequeraCuotaId -> {}", chequeraCuotaId);
+                log.debug("PaymentReferenceData (Cuota) - ChequeraCuotaId -> {}", chequeraCuotaId);
                 Long mercadoPagoContextId = Long.parseLong(parts[mercadoPagoContextIndex]);
-                log.debug("PaymentReferenceData - MercadoPagoContextId -> {}", mercadoPagoContextId);
-                return new PaymentReferenceData(chequeraCuotaId, mercadoPagoContextId);
+                log.debug("PaymentReferenceData (Cuota) - MercadoPagoContextId -> {}", mercadoPagoContextId);
+                return new PaymentReferenceData(chequeraCuotaId, mercadoPagoContextId, null);
             } catch (NumberFormatException e) {
                 log.error("Error parsing reference numbers: {}", e.getMessage());
             }
         }
-        log.error("Formato inválido de externalReference: {} -> {} parts (expected {})", externalReference, parts.length, EXPECTED_PARTS_LENGTH);
+        log.error("Formato inválido de externalReference: {} -> {} parts", externalReference, parts.length);
         return null;
     }
 
@@ -218,6 +230,7 @@ public class PaymentService {
         PaymentProcessedEvent event = PaymentProcessedEvent.builder()
                 .mercadoPagoContextId(referenceData.mercadoPagoContextId)
                 .chequeraCuotaId(referenceData.chequeraCuotaId)
+                .reservaVacanteId(referenceData.reservaVacanteId)
                 .paymentId(dataId)
                 .status(payment.getStatus())
                 .statusDetail(payment.getStatusDetail())
@@ -233,7 +246,7 @@ public class PaymentService {
     private record SignatureComponents(String ts, String v1) {
     }
 
-    private record PaymentReferenceData(Long chequeraCuotaId, Long mercadoPagoContextId) {
+    private record PaymentReferenceData(Long chequeraCuotaId, Long mercadoPagoContextId, UUID reservaVacanteId) {
     }
 
 }
