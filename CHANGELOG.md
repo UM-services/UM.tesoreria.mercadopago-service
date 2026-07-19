@@ -2,6 +2,15 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.10.0] - 2026-07-19
+
+### Added
+- feat(chequera): Nuevo endpoint `GET /api/tesoreria/mercadopago/chequera/create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}` para creación masiva de preferencias de pago de cuotas pendientes. El endpoint obtiene todos los contextos de una chequera del core-service en una sola llamada, crea las preferencias de MercadoPago y actualiza los contextos en batch, optimizando el rendimiento frente al endpoint existente que procesa cuota por cuota (fuente: `src/main/java/um/tesoreria/mercadopago/controller/ChequeraController.java:26-29`, `src/main/java/um/tesoreria/mercadopago/service/ChequeraService.java:51-80`, `git diff HEAD`)
+- feat(client): Nuevos métodos Feign `makeContextsChequera()` (GET) y `updateContexts()` (PUT) en `MercadoPagoCoreClient` para soportar operaciones batch contra el core-service (fuente: `src/main/java/um/tesoreria/mercadopago/client/core/MercadoPagoCoreClient.java:19-31`, `git diff HEAD`)
+
+### Changed
+- refactor(chequera): `ChequeraService.createChequeraContextBulk()` acumula todos los contextos actualizados y realiza una única llamada `updateContexts()` al core-service, a diferencia del flujo existente que actualiza contexto por contexto (fuente: `src/main/java/um/tesoreria/mercadopago/service/ChequeraService.java:51-80`, `git diff HEAD`)
+
 ## [0.9.0] - 2026-07-05
 
 ### Added

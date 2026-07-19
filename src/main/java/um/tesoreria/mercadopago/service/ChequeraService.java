@@ -48,4 +48,35 @@ public class ChequeraService {
         return preferences;
     }
 
+    public List<UMPreferenceMPDto> createChequeraContextBulk(Integer facultadId,
+            Integer tipoChequeraId,
+            Long chequeraSerieId,
+            Integer alternativaId) {
+        log.debug("\n\nProcessing ChequeraService.createChequeraContextBulk\n\n");
+        List<UMPreferenceMPDto> coreContexts = mercadoPagoCoreClient.makeContextsChequera(facultadId, tipoChequeraId, chequeraSerieId, alternativaId);
+        List<UMPreferenceMPDto> preferences = new ArrayList<>();
+        List<um.tesoreria.mercadopago.domain.dto.MercadoPagoContextDto> contextsToUpdate = new ArrayList<>();
+        
+        for (var umPreferenceMPDto : coreContexts) {
+            var mercadoPagoContext = preferenceCuotaService.createPreference(umPreferenceMPDto);
+            if (mercadoPagoContext != null) {
+                contextsToUpdate.add(mercadoPagoContext);
+                preferences.add(UMPreferenceMPDto.builder()
+                        .mercadoPagoContext(mercadoPagoContext)
+                        .chequeraCuota(umPreferenceMPDto.getChequeraCuota())
+                        .build());
+            }
+        }
+        
+        if (!contextsToUpdate.isEmpty()) {
+            try {
+                mercadoPagoCoreClient.updateContexts(contextsToUpdate);
+            } catch (Exception e) {
+                log.error("Error updating contexts in Core in bulk: {}", e.getMessage());
+            }
+        }
+        
+        return preferences;
+    }
+
 }

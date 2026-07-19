@@ -23,4 +23,9 @@ public class ChequeraController {
         return ResponseEntity.ok(service.createChequeraContext(facultadId, tipoChequeraId, chequeraSerieId, alternativaId));
     }
 
+    @GetMapping("/create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}")
+    public ResponseEntity<List<UMPreferenceMPDto>> createChequeraContextBulk(@PathVariable Integer facultadId, @PathVariable Integer tipoChequeraId, @PathVariable Long chequeraSerieId, @PathVariable Integer alternativaId) {
+        return ResponseEntity.ok(service.createChequeraContextBulk(facultadId, tipoChequeraId, chequeraSerieId, alternativaId));
+    }
+
 }
