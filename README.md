@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.9.0 _(fuente: pom.xml)_
+- **Versión actual:** 0.10.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -60,7 +60,8 @@ El servicio expone endpoints REST para la gestión de preferencias de pago y pag
 - `GET /api/tesoreria/mercadopago/payment/update/{dataId}`: Forzar actualización de un pago
 
 ### Chequeras
-- `GET /api/tesoreria/mercadopago/chequera/create/context/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}`: Crear preferencias para cuotas pendientes
+- `GET /api/tesoreria/mercadopago/chequera/create/context/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}`: Crear preferencias para cuotas pendientes (una por una)
+- `GET /api/tesoreria/mercadopago/chequera/create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}`: Crear preferencias para cuotas pendientes en modo batch (obtiene todos los contextos del core en una sola llamada)
 
 ### Verificación
 - `GET /api/tesoreria/mercadopago/checking/cuota/{chequeraCuotaId}`: Verificar/renovar cuota individual
@@ -92,7 +93,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
-[![Version](https://img.shields.io/badge/Version-0.9.0-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
+[![Version](https://img.shields.io/badge/Version-0.10.0-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.2-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-3.2.1-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
