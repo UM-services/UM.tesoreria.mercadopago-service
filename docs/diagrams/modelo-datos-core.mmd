@@ -1,11 +1,5 @@
 erDiagram
-    title Modelo de Datos Principal (DTOs)
-
-    UMPreferenceMPDto {
-        MercadoPagoContextDto mercadoPagoContext
-        ChequeraCuotaDto chequeraCuota
-        ReservaVacante reservaVacante
-    }
+    UMPreferenceMPDto
 
     MercadoPagoContextDto {
         long mercadoPagoContextId PK
@@ -26,8 +20,6 @@ erDiagram
         OffsetDateTime fechaAcreditacion
         BigDecimal importePagado
         string payment
-        ChequeraCuotaDto chequeraCuota
-        ReservaVacante reservaVacante
     }
 
     ChequeraCuotaDto {
@@ -52,10 +44,6 @@ erDiagram
         byte pagado
         byte baja
         int tramoId
-        FacultadDto facultad
-        TipoChequeraDto tipoChequera
-        ProductoDto producto
-        ChequeraSerieDto chequeraSerie
     }
 
     ReservaVacante {
@@ -65,9 +53,6 @@ erDiagram
         string estado
         BigDecimal importe
         OffsetDateTime vencimiento
-        Campanha campanha
-        PersonaDto persona
-        DomicilioDto domicilio
     }
 
     Campanha {
@@ -88,9 +73,6 @@ erDiagram
         BigDecimal becaPorcentaje
         string becaResolucion
         OffsetDateTime becaFecha
-        FacultadDto facultad
-        PersonaDto persona
-        DomicilioDto domicilio
     }
 
     ChequeraPagoDto {
@@ -131,6 +113,7 @@ erDiagram
     MercadoPagoContextDto ||--o{ ReservaVacante : "ref"
     ChequeraCuotaDto ||--|| ProductoDto : "incluye"
     ChequeraCuotaDto ||--|| ChequeraSerieDto : "pertenece_a"
+    ChequeraCuotaDto ||--|| FacultadDto : "facultad"
     ChequeraSerieDto ||--|| PersonaDto : "titular"
     ChequeraSerieDto ||--|| DomicilioDto : "domicilio"
     ChequeraSerieDto ||--|| FacultadDto : "facultad"
