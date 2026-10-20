@@ -2,6 +2,21 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.10.1] - 2026-10-20
+
+### Added
+- ci(deploy): Nuevos workflows `deploy-develop.yml` y `deploy-staging.yml` que verifican la aplicación con `mvn -B verify`, construyen y publican la imagen Docker etiquetada con el SHA del commit y despliegan en runners self-hosted. El workflow de staging despliega en matriz sobre los entornos `staging` y `staging-new` (fuente: `.github/workflows/deploy-develop.yml`, `.github/workflows/deploy-staging.yml`, `git diff HEAD`)
+
+### Changed
+- chore(deps): Actualización de Spring Boot de 4.1.0 a 4.1.1 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de Spring Cloud de 2025.1.2 a 2025.1.3 (fuente: `pom.xml`, `git diff HEAD`)
+
+### Fixed
+- fix(logging): El nivel de log configurado en `bootstrap.yml` ahora aplica al paquete base `um.tesoreria.mercadopago` en lugar del paquete obsoleto `um.tesoreria.mercadopago.service`, restaurando el logging tras la migración de paquetes de la versión 0.7.0 (fuente: `src/main/resources/bootstrap.yml`, `git diff HEAD`)
+- docs(diagramas): `despliegue.mmd` migrado de la sintaxis inválida `deploymentDiagram` a `flowchart TD`; `modelo-datos-core.mmd` ajustado para expresar las relaciones entre DTOs mediante relaciones ER en lugar de atributos de tipo objeto y se eliminó el atributo inexistente `mercadoPagoContextId` de `UMPreferenceMPDto` (fuente: `docs/diagrams/despliegue.mmd`, `docs/diagrams/modelo-datos-core.mmd`, `src/main/java/um/tesoreria/mercadopago/domain/dto/UMPreferenceMPDto.java`, `git diff HEAD`)
+- docs(readme): Corregidas las referencias a Spring Boot (4.1.0 → 4.1.1) para que coincidan con `pom.xml` (fuente: `README.md`, `pom.xml`)
+- docs(changelog): Restaurada la versión de Spring Cloud registrada para la release 0.6.0 (2025.1.2), coherente con el `pom.xml` de esa versión (fuente: `git show 8e5caa6:pom.xml`)
+
 ## [0.10.0] - 2026-07-19
 
 ### Added

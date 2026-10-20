@@ -33,7 +33,7 @@ spring:
 
 logging:
   level:
-    um.tesoreria.mercadopago.service: ${app.logging}
+    um.tesoreria.mercadopago: ${app.logging}
     web: ${app.logging}
     org:
       springframework.cloud.config: ${app.logging}

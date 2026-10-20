@@ -1,19 +1,15 @@
-deploymentDiagram
-    title Diagrama de Despliegue
+flowchart TD
+    subgraph ServidorUM["Servidor UM"]
+        APP["mercadopago-service.jar<br/>Spring Boot 4.1 App"]
+    end
 
-    node "Servidor UM" {
-        artifact "mercadopago-service.jar" {
-            component "Spring Boot 4.1 App"
-        }
-    }
+    subgraph BackendCore["Backend Tesorería Core"]
+        CORE["tesoreria-core-service"]
+    end
 
-    node "Backend Tesorería Core" {
-        component "tesoreria-core-service" as CORE
-    }
+    subgraph MPPlatform["Plataforma Mercado Pago"]
+        MP_API["API de Mercado Pago"]
+    end
 
-    node "Plataforma Mercado Pago" {
-        component "API de Mercado Pago" as MP_API
-    }
-
-    "Spring Boot 4.1 App" --> MP_API : "HTTPS/REST"
-    "Spring Boot 4.1 App" --> CORE : "Feign Client / HTTP"
+    APP -->|"HTTPS/REST"| MP_API
+    APP -->|"Feign Client / HTTP"| CORE
