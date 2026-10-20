@@ -3,30 +3,32 @@ sequenceDiagram
 
     actor Usuario
     participant Frontend as "Interfaz de Usuario"
-    participant VacanteController as "PreferenceVacanteController"
-    participant VacanteService as "PreferenceVacanteService"
-    participant PrefService as "PreferenceService (hexagonal)"
+    participant Ctrl as "PreferenceVacanteController"
+    participant Svc as "PreferenciaVacanteService"
+    participant Caso as "CrearPreferenciaVacanteUseCase"
+    participant Builder as "PreferenciaRequestBuilder"
+    participant MPSvc as "MercadoPagoService"
     participant MP_API as "API de Mercado Pago"
+    participant CtxSvc as "ContextoService"
+    participant Core as "tesoreria-core-service"
 
     Usuario->>Frontend: 1. Solicita reservar una vacante
-    Frontend->>VacanteController: 2. POST /api/tesoreria/mercadopago/vacante/preference/create
-    VacanteController->>VacanteService: 3. createPreference(dto)
-    
-    alt InitPoint exists
-        VacanteService-->>VacanteController: 4. Retorna contexto existente
-    else Nueva preferencia
-        VacanteService->>PrefService: 4. setAccessTokenAndLog()
-        VacanteService->>PrefService: 5. buildPreferenceRequest(dto, null, true)  // sin restricciones
-        PrefService->>PrefService: 6. Crea item (vacante), payer, paymentMethods (sin restricciones)
-        PrefService-->>VacanteService: 7. PreferenceRequest
-        
-        VacanteService->>PrefService: 8. createAndLogPreference(request, context)
-        PrefService->>MP_API: 9. POST /checkout/preferences
-        MP_API-->>PrefService: 10. init_point, preferenceId
-        
-        PrefService-->>VacanteService: 11. MercadoPagoContext actualizado
+    Frontend->>Ctrl: 2. POST /api/tesoreria/mercadopago/vacante/preference/create
+    Ctrl->>Svc: 3. crear(contexto, reserva)
+    Svc->>Caso: 4. crear(contexto, reserva)
+
+    alt initPoint existente
+        Caso-->>Svc: 5. Retorna el contexto existente
+    else Preferencia nueva
+        Caso->>Builder: 5. construirParaReserva(contexto, reserva)
+        Builder-->>Caso: 6. SolicitudPreferencia sin restricciones de medios de pago
+        Caso->>MPSvc: 7. crear(solicitud)
+        MPSvc->>MP_API: 8. POST /checkout/preferences
+        MP_API-->>MPSvc: 9. init_point, preferenceId
+        MPSvc-->>Caso: 10. PreferenciaMercadoPago
+        Caso->>CtxSvc: 11. actualizar(contexto)
+        CtxSvc->>Core: 12. PUT /updateContext/{id}
     end
-    
-    VacanteService-->>VacanteController: 12. MercadoPagoContextDto
-    VacanteController-->>Frontend: 13. Responde con datos de preferencia
-    Frontend->>Usuario: 14. Redirige a URL de Mercado Pago
+
+    Ctrl-->>Frontend: 13. MercadoPagoContextDto
+    Frontend->>Usuario: 14. Redirige a la URL de pago

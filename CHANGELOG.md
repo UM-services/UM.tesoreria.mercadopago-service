@@ -2,6 +2,43 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.11.0] - 2026-10-20
+
+### Added
+- feat(hexagonal): Migración completa al slice único `um.tesoreria.mercadopago.hexagonal.mercadopago` con los subpaquetes `datos` (`chequeraCuota`, `contexto`, `tipoChequeraTarjeta`), `gateways` (`mercadoPago`, `mensajeria`), `procesos` (`checking`, `chequera`, `pago`, `preferenciaCuota`, `preferenciaVacante`) y `shared` (modelo, servicios, DTOs y mappers). Cada slice declara `domain/model`, `domain/ports/in`, `domain/ports/out`, `application/usecases` e `infrastructure` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/**`, `git diff HEAD`)
+- feat(datos): Nuevos puertos de salida `ContextoRepository`, `ChequeraCuotaRepository` y `TipoChequeraTarjetaRepository`, implementados por `ContextoClientAdapter`, `ChequeraCuotaClientAdapter` y `TipoChequeraTarjetaClientAdapter` sobre los clientes Feign `ContextoCoreClient`, `ContextoQueryClient`, `ChequeraCuotaClient` y `TipoChequeraMercadoPagoCreditCardClient` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/datos/**`, `git diff HEAD`)
+- feat(gateways): `MercadoPagoService` expone los casos de uso `CrearPreferenciaUseCase`, `ActualizarPreferenciaUseCase`, `RecuperarPreferenciaUseCase` y `RecuperarPagoUseCase` sobre el SDK 3.2.1, con los mappers `PreferenciaMapper`, `PagoMapper` y `SolicitudPreferenciaMapper` y la excepción `MercadoPagoException` (status + respuesta de la API) (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/gateways/mercadoPago/**`, `git diff HEAD`)
+- feat(mensajeria): `MensajeriaService`, `PublicarPagoProcesadoUseCaseImpl` y `PaymentEventProducerAdapter` publican `PagoProcesadoEvento` en el tópico `payment-processed` usando `paymentId` como clave (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/gateways/mensajeria/**`, `KafkaContractTest.java`, `git diff HEAD`)
+- feat(shared): Nuevo modelo de dominio `ContextoMercadoPago`, `ChequeraCuota`, `PreferenciaMercadoPago`, `PagoMercadoPago`, `ReservaVacante`, `SolicitudPreferencia`, `TipoChequeraTarjeta`, `ItemPreferencia`, `PagadorPreferencia`, `MediosPagoPreferencia`, `UrlsRetornoPreferencia` y `ContextoConCuota`, junto con `PreferenciaRequestBuilder` y `FechasMercadoPago` como servicios compartidos (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/shared/**`, `git diff HEAD`)
+- feat(pago): La verificación de firma del webhook se modela en dominio con `CabecerasWebhook`, `ComponentesFirma` y `FirmaWebhook`, y la referencia externa con `ReferenciaExterna.parse(...)` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/pago/domain/model/**`, `WireFormatContractTest.java`, `git diff HEAD`)
+- test(contrato): Nuevos tests `ArquitecturaHexagonalTest`, `HttpContractTest` (9 endpoints), `FeignClientsContractTest`, `KafkaContractTest`, `PreferenceRequestContractTest`, `SchedulingContractTest` y `WireFormatContractTest`, además de tests por caso de uso en `hexagonal/**` (fuente: `src/test/java/um/tesoreria/mercadopago/**`, `git diff HEAD`)
+
+### Changed
+- refactor(paquetes): Eliminados los paquetes `client`, `controller`, `service`, `domain`, `producer`, `scheduled`, `util` y `hexagonal.preference`; `MercadoPagoApplication` conserva el escaneo base `um.tesoreria.mercadopago` (fuente: `git status`, `ArquitecturaHexagonalTest.losPaquetesLegadosYaNoExisten`)
+- refactor(config): `@EnableFeignClients` ahora escanea `um.tesoreria.mercadopago.hexagonal` en lugar de `um.tesoreria.mercadopago.client` (fuente: `src/main/java/um/tesoreria/mercadopago/configuration/MercadoPagoConfiguration.java`, `git diff HEAD`)
+- refactor(persistencia): `CrearPreferenciaCuotaUseCaseImpl` y `ActualizarPreferenciaCuotaUseCaseImpl` dejaron de escribir en el core; la persistencia queda a cargo de `ChequearCuotaUseCaseImpl` (un `updateContext`), `CrearContextosChequeraUseCaseImpl` (un `updateContext` por cuota) y `CrearContextosChequeraBulkUseCaseImpl` (un `updateContexts` batch), mientras que el endpoint `POST /preference/create` usa `PreferenciaCuotaService.crearYGuardar`. El detalle del diseño está en `docs/persistencia-contexto-mercadopago.md` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/**`, `docs/persistencia-contexto-mercadopago.md`, `git diff HEAD`)
+- refactor(kafka): El productor usa un `JacksonJsonSerializer` explícito con `setAddTypeInfo(false)`, por lo que el evento ya no se publica con el header `__TypeId__`; se conservan el tópico `payment-processed`, la clave `paymentId` y las propiedades `acks=all` y `retries=3` (fuente: `src/main/java/um/tesoreria/mercadopago/configuration/KafkaConfiguration.java`, `KafkaContractTest.java`, `git diff HEAD`)
+- refactor(controller): Los controladores reciben y devuelven DTOs, delegan en los servicios de `procesos` y usan `PreferenciaDtoMapper`/`ContextoMercadoPagoDtoMapper`, manteniendo las mismas rutas y verbos HTTP (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/*/infrastructure/web/controller/**`, `HttpContractTest.java`, `git diff HEAD`)
+- refactor(config): `app.secret-key` pasa a `${app.secret-key:}` para permitir el arranque sin la propiedad; una firma inválida se sigue registrando con `log.warn` y no aborta el webhook (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/pago/application/usecases/ProcesarWebhookPagoUseCaseImpl.java`, `git diff HEAD`)
+
+### Fixed
+- fix(preferencia): `POST /api/tesoreria/mercadopago/preference/create` ahora persiste el contexto cuando llega con `changed == 1`, guardando `changed = 0` y `lastVencimientoUpdated`; antes ese camino no escribía en el core (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/preferenciaCuota/application/service/PreferenciaCuotaService.java`, `PreferenciaCuotaServiceTest.java`, `git diff HEAD`)
+- fix(persistencia): Los errores del core al persistir se registran (`Error updating context in Core...`) y ya no abortan el flujo de `checking`, chequera individual ni bulk (fuente: `ChequearCuotaUseCaseImpl.java`, `CrearContextosChequeraBulkUseCaseImpl.java`, `docs/persistencia-contexto-mercadopago.md`, `git diff HEAD`)
+- fix(duplicación): Eliminada la doble escritura del contexto al crear una preferencia de cuota (de 2 PUT a 1 PUT en el flujo unitario y de N + 1 escrituras a un único batch en el flujo bulk) (fuente: `docs/persistencia-contexto-mercadopago.md`, `git diff HEAD`)
+
+### Removed
+- refactor: Eliminados `PaymentService`, el `PreferenceService` monolítico, `PaymentEventProducer`, `DateToolMP`, `ChequeraPagoDto` y el test suelto `src/test/java/SignatureTest.java` (fuente: `git status`, `git diff HEAD`)
+- refactor(dto): Los modelos de vacante pasan de `ReservaVacante`/`Campanha` a los DTOs `ReservaVacanteDto`/`CampanhaDto`, y todos los DTOs se reubican en `shared.infrastructure.dto` con mappers dedicados (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/shared/infrastructure/**`, `git diff HEAD`)
+
+### Documentation
+- docs: Nuevo `docs/persistencia-contexto-mercadopago.md` con la política de persistencia de contextos y las escrituras por flujo, enlazado desde el README (fuente: `docs/persistencia-contexto-mercadopago.md`, `README.md`, `git diff HEAD`)
+- docs(diagramas): Actualizados los diagramas de secuencia de cuota, vacante y bulk a los nuevos casos de uso; `modelo-datos-core.mmd` elimina `ChequeraPagoDto` y renombra sus entidades a `ReservaVacanteDto` y `CampanhaDto`; nuevo `arquitectura-hexagonal.mmd` registrado en `generate-docs.yml` con escapado del contenido antes de inyectarlo con `innerHTML` (fuente: `docs/diagrams/**`, `.github/workflows/generate-docs.yml`, `git diff HEAD`)
+
+### Breaking Changes
+- Cambian los paquetes de todas las clases: cualquier consumidor Java que importe `um.tesoreria.mercadopago.client`, `.controller`, `.service`, `.domain`, `.producer`, `.scheduled`, `.util` o `.hexagonal.preference` debe migrar a `um.tesoreria.mercadopago.hexagonal.mercadopago.*`.
+- `PaymentProcessedEvent` se mueve a `...gateways.mensajeria.infrastructure.kafka.event` y el contrato Kafka deja de enviar el header `__TypeId__`; los consumidores deben deserializar con el tipo target en lugar de depender del header.
+- Los endpoints REST no cambian de ruta, verbo ni forma de payload.
+
 ## [0.10.1] - 2026-10-20
 
 ### Added

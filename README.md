@@ -4,12 +4,12 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.10.1 _(fuente: pom.xml)_
+- **Versión actual:** 0.11.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
 - Gestión de preferencias de pago en MercadoPago (cuotas y reserva de vacantes)
-- Arquitectura hexagonal con separación de responsabilidades
+- Arquitectura hexagonal por slices con puertos de entrada/salida y adaptadores Feign, SDK de MercadoPago y Kafka
 - Configuración de métodos de pago por tipo de chequera
 - Soporte para tarjetas de crédito con configuración específica (cuotas, monto máximo)
 - Manejo robusto de errores y logging detallado con serialización JSON centralizada
@@ -18,7 +18,18 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 - Registro de última actualización de vencimiento de preferencias
 - Envío automático de notificaciones de cuota para usuarios específicos
 - Tareas programadas para verificación automática diaria
-- Soporte para eventos Kafka con serialización Jackson
+- Publicación del evento `payment-processed` en Kafka con payload JSON (sin header `__TypeId__`)
+
+## Arquitectura
+
+El código vive en un único slice `um.tesoreria.mercadopago.hexagonal.mercadopago` con cuatro áreas:
+
+- `datos`: acceso al `tesoreria-core-service` (`chequeraCuota`, `contexto`, `tipoChequeraTarjeta`).
+- `gateways`: salidas hacia MercadoPago (`mercadoPago`) y Kafka (`mensajeria`).
+- `procesos`: casos de uso orquestadores (`checking`, `chequera`, `pago`, `preferenciaCuota`, `preferenciaVacante`).
+- `shared`: modelo de dominio, DTOs, mappers y servicios comunes.
+
+Cada slice declara `domain/model`, `domain/ports/in`, `domain/ports/out`, `application/usecases` e `infrastructure`; la regla de dependencias (`domain` ← `application` ← `infrastructure` y `shared` sin depender de otras slices) se verifica en `ArquitecturaHexagonalTest`. Ver [diagrama de arquitectura hexagonal](docs/diagrams/arquitectura-hexagonal.mmd).
 
 ## Requisitos
 
@@ -93,7 +104,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
-[![Version](https://img.shields.io/badge/Version-0.10.1-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
+[![Version](https://img.shields.io/badge/Version-0.11.0-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.1-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.3-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-3.2.1-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
@@ -118,6 +129,7 @@ La documentación del proyecto se genera automáticamente con cada push a la ram
 
 - [Documentación del Servicio](https://um-services.github.io/UM.tesoreria.mercadopago-service)
 - [Wiki del Proyecto](https://github.com/UM-services/UM.tesoreria.mercadopago-service/wiki)
+- [Persistencia de contextos de Mercado Pago](docs/persistencia-contexto-mercadopago.md)
 - [Documentación de MercadoPago](https://www.mercadopago.com.ar/developers/es/reference)
 
 ## Estado del Proyecto

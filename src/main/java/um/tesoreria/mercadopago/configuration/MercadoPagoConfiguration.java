@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@EnableFeignClients(basePackages = "um.tesoreria.mercadopago.client")
+@EnableFeignClients(basePackages = "um.tesoreria.mercadopago.hexagonal")
 @EnableScheduling
 public class MercadoPagoConfiguration {
 }
