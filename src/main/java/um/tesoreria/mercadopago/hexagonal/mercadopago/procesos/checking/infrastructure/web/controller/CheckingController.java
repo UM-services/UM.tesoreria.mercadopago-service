@@ -20,6 +20,10 @@ public class CheckingController {
         return ResponseEntity.ok(checkingService.checkingCuota(chequeraCuotaId));
     }
 
+    /**
+     * @deprecated Barrido legado (90 días). Usar {@code POST /api/tesoreria/mercadopago/renovacion/run}.
+     */
+    @Deprecated
     @GetMapping("/all/active")
     public ResponseEntity<String> checkingAllActive() {
         return ResponseEntity.ok(checkingService.checkingAllActive());

@@ -11,6 +11,7 @@ import org.mockito.quality.Strictness;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.service.MercadoPagoService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mensajeria.application.service.MensajeriaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mensajeria.domain.model.PagoProcesadoEvento;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.OrigenNotificacion;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.PagoMercadoPago;
 
 import java.math.BigDecimal;
@@ -44,17 +45,16 @@ class RecuperarYPublicarPagoUseCaseImplTest {
     }
 
     @Test
-    void siNoEncuentraElPagoNoPublica() {
+    void siNoEncuentraElPagoNoPublicaYDevuelveFalse() {
         when(mercadoPagoService.recuperarPago(12345L)).thenReturn(Optional.empty());
 
-        useCase.recuperarYPublicar("12345");
-
+        assertThat(useCase.recuperarYPublicar("12345", OrigenNotificacion.WEBHOOK_V1)).isFalse();
         verifyNoInteractions(mensajeriaService);
     }
 
     @Test
     void parseaLaReferenciaCortaYPublicaElEvento() {
-        publicarConReferencia("100-50");
+        assertThat(publicarConReferencia("100-50")).isTrue();
 
         var event = capturarEvento();
         assertThat(event.getChequeraCuotaId()).isEqualTo(100L);
@@ -67,7 +67,7 @@ class RecuperarYPublicarPagoUseCaseImplTest {
 
     @Test
     void parseaLaReferenciaLargaDeTresPartes() {
-        publicarConReferencia("prefijo-100-50");
+        assertThat(publicarConReferencia("prefijo-100-50")).isTrue();
 
         assertThat(capturarEvento().getChequeraCuotaId()).isEqualTo(100L);
     }
@@ -76,7 +76,7 @@ class RecuperarYPublicarPagoUseCaseImplTest {
     void parseaLaReferenciaDeVacanteDeSeisPartes() {
         UUID reserva = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
-        publicarConReferencia(reserva + "-50");
+        assertThat(publicarConReferencia(reserva + "-50")).isTrue();
 
         var event = capturarEvento();
         assertThat(event.getReservaVacanteId()).isEqualTo(reserva);
@@ -85,29 +85,57 @@ class RecuperarYPublicarPagoUseCaseImplTest {
     }
 
     @Test
-    void conReferenciaInvalidaNoPublica() {
-        publicarConReferencia("abc-def");
+    void conReferenciaInvalidaNoPublicaYDevuelveFalse() {
+        assertThat(publicarConReferencia("abc-def")).isFalse();
+
+        verify(mensajeriaService, never()).publicar(any());
+    }
+
+    @Test
+    void conReferenciaNulaNoPublicaYDevuelveFalse() {
+        assertThat(publicarConReferencia(null)).isFalse();
 
         verify(mensajeriaService, never()).publicar(any());
     }
 
     @Test
     void conReferenciaDeCuatroPartesNoPublica() {
-        publicarConReferencia("a-b-c-d");
+        assertThat(publicarConReferencia("a-b-c-d")).isFalse();
 
         verify(mensajeriaService, never()).publicar(any());
     }
 
     @Test
     void conDataIdNoNumericoPropagaLaExcepcion() {
-        assertThatThrownBy(() -> useCase.recuperarYPublicar("abc"))
+        assertThatThrownBy(() -> useCase.recuperarYPublicar("abc", OrigenNotificacion.WEBHOOK_V1))
                 .isInstanceOf(NumberFormatException.class);
         verifyNoInteractions(mensajeriaService);
     }
 
-    private void publicarConReferencia(String externalReference) {
+    @Test
+    void elEventoIndicaElOrigenYLaUltimaActualizacionDelPago() {
+        assertThat(publicarConReferencia("100-50", OrigenNotificacion.IPN_LEGACY)).isTrue();
+
+        var event = capturarEvento();
+        assertThat(event.getSource()).isEqualTo("IPN_LEGACY");
+        assertThat(event.getDateLastUpdated())
+                .isEqualTo(OffsetDateTime.of(2026, 10, 20, 12, 30, 0, 0, ZoneOffset.UTC));
+    }
+
+    @Test
+    void elOrigenManualSePropagaEnElEvento() {
+        assertThat(publicarConReferencia("100-50", OrigenNotificacion.MANUAL)).isTrue();
+
+        assertThat(capturarEvento().getSource()).isEqualTo("MANUAL");
+    }
+
+    private boolean publicarConReferencia(String externalReference) {
+        return publicarConReferencia(externalReference, OrigenNotificacion.WEBHOOK_V1);
+    }
+
+    private boolean publicarConReferencia(String externalReference, OrigenNotificacion origen) {
         when(mercadoPagoService.recuperarPago(12345L)).thenReturn(Optional.of(pago(externalReference)));
-        useCase.recuperarYPublicar("12345");
+        return useCase.recuperarYPublicar("12345", origen);
     }
 
     private PagoMercadoPago pago(String externalReference) {
@@ -118,6 +146,7 @@ class RecuperarYPublicarPagoUseCaseImplTest {
                 .statusDetail("accredited")
                 .dateApproved(OffsetDateTime.of(2026, 10, 20, 12, 0, 0, 0, ZoneOffset.UTC))
                 .dateCreated(OffsetDateTime.of(2026, 10, 20, 11, 0, 0, 0, ZoneOffset.UTC))
+                .dateLastUpdated(OffsetDateTime.of(2026, 10, 20, 12, 30, 0, 0, ZoneOffset.UTC))
                 .transactionAmount(new BigDecimal("1234.50"))
                 .json("{\"id\":12345}")
                 .build();

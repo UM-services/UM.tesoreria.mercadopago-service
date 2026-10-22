@@ -51,6 +51,9 @@ public class MercadoPagoContextDto implements Jsonifyable {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXX", timezone = "UTC")
     private OffsetDateTime fechaAcreditacion;
 
+    /** {@code date_last_updated} del pago en MP (orden de los eventos); se reenvía tal cual a core. */
+    private OffsetDateTime dateLastUpdated;
+
     @Builder.Default
     private BigDecimal importePagado = BigDecimal.ZERO;
     private String payment;

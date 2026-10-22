@@ -9,6 +9,7 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.appli
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.service.MercadoPagoService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.domain.ports.in.ActualizarPreferenciaCuotaUseCase;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.application.service.PreferenciaRequestBuilder;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ChequeraCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoMercadoPago;
 
 import java.time.OffsetDateTime;
@@ -26,6 +27,11 @@ public class ActualizarPreferenciaCuotaUseCaseImpl implements ActualizarPreferen
 
     @Override
     public ContextoMercadoPago actualizar(ContextoMercadoPago contexto) {
+        return actualizar(contexto, null);
+    }
+
+    @Override
+    public ContextoMercadoPago actualizar(ContextoMercadoPago contexto, ChequeraCuota cuotaExistente) {
         log.debug("\n\nProcessing ActualizarPreferenciaCuotaUseCaseImpl.actualizar\n\n");
 
         var preferencia = mercadoPagoService.recuperar(contexto.getPreferenceId()).orElse(null);
@@ -33,7 +39,7 @@ public class ActualizarPreferenciaCuotaUseCaseImpl implements ActualizarPreferen
             return null;
         }
 
-        var cuota = chequeraCuotaService.getById(contexto.getChequeraCuotaId());
+        var cuota = cuotaExistente != null ? cuotaExistente : chequeraCuotaService.getById(contexto.getChequeraCuotaId());
         var tipo = tipoChequeraTarjetaService
                 .getByUnique(cuota.getTipoChequeraId(), cuota.getAlternativaId())
                 .orElse(null);

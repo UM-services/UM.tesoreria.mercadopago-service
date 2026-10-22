@@ -22,6 +22,8 @@ public class PaymentProcessedEvent {
     private String statusDetail;
     private OffsetDateTime dateApproved;
     private OffsetDateTime dateCreated;
+    private OffsetDateTime dateLastUpdated;
     private BigDecimal transactionAmount;
     private String paymentJson;
+    private String source;
 }

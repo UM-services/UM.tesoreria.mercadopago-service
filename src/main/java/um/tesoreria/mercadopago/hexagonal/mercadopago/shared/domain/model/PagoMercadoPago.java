@@ -24,6 +24,11 @@ public class PagoMercadoPago {
     private String statusDetail;
     private OffsetDateTime dateApproved;
     private OffsetDateTime dateCreated;
+    /**
+     * {@code date_last_updated} del pago en Mercado Pago: ordena los eventos de un mismo pago
+     * (un refund es posterior al approved) y permite descartar entregas fuera de orden.
+     */
+    private OffsetDateTime dateLastUpdated;
     private BigDecimal transactionAmount;
     private String json;
 

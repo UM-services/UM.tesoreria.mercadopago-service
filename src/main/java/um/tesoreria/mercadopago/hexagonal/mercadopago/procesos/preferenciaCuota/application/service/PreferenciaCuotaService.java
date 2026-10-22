@@ -41,6 +41,10 @@ public class PreferenciaCuotaService {
         return actualizarPreferenciaCuotaUseCase.actualizar(contexto);
     }
 
+    public ContextoMercadoPago actualizar(ContextoMercadoPago contexto, ChequeraCuota cuota) {
+        return actualizarPreferenciaCuotaUseCase.actualizar(contexto, cuota);
+    }
+
     public PreferenciaMercadoPago recuperar(String preferenceId) {
         return recuperarPreferenciaCuotaUseCase.recuperar(preferenceId);
     }

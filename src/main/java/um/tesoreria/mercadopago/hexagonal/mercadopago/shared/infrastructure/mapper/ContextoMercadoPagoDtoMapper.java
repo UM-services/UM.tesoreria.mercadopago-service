@@ -24,6 +24,7 @@ public class ContextoMercadoPagoDtoMapper {
                 .status(dto.getStatus())
                 .fechaPago(dto.getFechaPago())
                 .fechaAcreditacion(dto.getFechaAcreditacion())
+                .dateLastUpdated(dto.getDateLastUpdated())
                 .payment(dto.getPayment())
                 .chequeraCuotaOriginal(dto.getChequeraCuota())
                 .reservaVacanteOriginal(dto.getReservaVacante());
@@ -53,6 +54,7 @@ public class ContextoMercadoPagoDtoMapper {
                 .status(domain.getStatus())
                 .fechaPago(domain.getFechaPago())
                 .fechaAcreditacion(domain.getFechaAcreditacion())
+                .dateLastUpdated(domain.getDateLastUpdated())
                 .payment(domain.getPayment())
                 .chequeraCuota((um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.ChequeraCuotaDto) domain.getChequeraCuotaOriginal())
                 .reservaVacante((um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.ReservaVacanteDto) domain.getReservaVacanteOriginal());

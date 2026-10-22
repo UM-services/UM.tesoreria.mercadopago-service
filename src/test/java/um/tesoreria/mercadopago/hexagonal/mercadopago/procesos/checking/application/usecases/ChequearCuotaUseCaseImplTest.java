@@ -60,6 +60,8 @@ class ChequearCuotaUseCaseImplTest {
     @Test
     void actualizaElContextoCreado() {
         var par = par(5L);
+        par.getContexto().setInitPoint("https://mp/init");
+        par.getContexto().setChanged((byte) 1);
         when(contextoService.crearContexto(7L)).thenReturn(par);
         when(preferenciaCuotaService.crear(par.getContexto(), par.getCuota())).thenReturn(par.getContexto());
 
@@ -69,8 +71,33 @@ class ChequearCuotaUseCaseImplTest {
     }
 
     @Test
+    void siMercadoPagoNoDevuelveLinkNoPersiste() {
+        var par = par(5L);
+        when(contextoService.crearContexto(7L)).thenReturn(par);
+        when(preferenciaCuotaService.crear(par.getContexto(), par.getCuota())).thenReturn(par.getContexto());
+
+        assertThat(useCase.chequear(7L)).isEqualTo("Checked");
+
+        verify(contextoService, never()).actualizar(any());
+    }
+
+    @Test
+    void siNoCambioNadaNoPersiste() {
+        var par = par(5L);
+        par.getContexto().setInitPoint("https://mp/init");
+        par.getContexto().setChanged((byte) 0);
+        when(contextoService.crearContexto(7L)).thenReturn(par);
+        when(preferenciaCuotaService.crear(par.getContexto(), par.getCuota())).thenReturn(par.getContexto());
+
+        assertThat(useCase.chequear(7L)).isEqualTo("Checked");
+
+        verify(contextoService, never()).actualizar(any());
+    }
+
+    @Test
     void siFallaLaActualizacionIgualDevuelveChecked() {
         var par = par(5L);
+        par.getContexto().setInitPoint("https://mp/init");
         when(contextoService.crearContexto(7L)).thenReturn(par);
         when(preferenciaCuotaService.crear(par.getContexto(), par.getCuota())).thenReturn(par.getContexto());
         when(contextoService.actualizar(par.getContexto())).thenThrow(new RuntimeException("core caido"));

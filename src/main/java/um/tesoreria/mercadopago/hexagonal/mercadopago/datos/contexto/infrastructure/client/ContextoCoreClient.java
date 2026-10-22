@@ -2,12 +2,17 @@ package um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.infrastruc
 
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.MercadoPagoContextDto;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.PreferenciaPatchDto;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.RenovacionesCandidatosRequestDto;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.UMPreferenceMPDto;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @FeignClient(name = "tesoreria-core-service", contextId = "mercadoPagoCoreClient", path = "/api/tesoreria/core/mercadopago")
@@ -28,5 +33,12 @@ public interface ContextoCoreClient {
 
     @PutMapping("/updateContexts")
     List<MercadoPagoContextDto> updateContexts(@RequestBody List<MercadoPagoContextDto> contexts);
+
+    @PostMapping("/renovaciones")
+    List<UMPreferenceMPDto> findRenovaciones(@RequestBody RenovacionesCandidatosRequestDto request);
+
+    @PatchMapping("/updateContext/{mercadoPagoContextId}/preferencia")
+    void updatePreferencia(@RequestBody PreferenciaPatchDto patch,
+                           @PathVariable Long mercadoPagoContextId);
 
 }

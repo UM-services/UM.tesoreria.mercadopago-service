@@ -32,6 +32,7 @@ public class PagoMapper {
                 .statusDetail(payment.getStatusDetail())
                 .dateApproved(payment.getDateApproved())
                 .dateCreated(payment.getDateCreated())
+                .dateLastUpdated(payment.getDateLastUpdated())
                 .transactionAmount(payment.getTransactionAmount())
                 .json(paymentString)
                 .build();

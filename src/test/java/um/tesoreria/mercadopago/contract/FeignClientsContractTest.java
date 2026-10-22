@@ -95,6 +95,7 @@ class FeignClientsContractTest {
                  "fechaVencimiento":null,"importe":1234.50,"changed":0,"lastVencimientoUpdated":null,
                  "preferenceId":null,"preference":null,"activo":1,"chequeraPagoId":null,
                  "idMercadoPago":null,"status":null,"fechaPago":null,"fechaAcreditacion":null,
+                 "dateLastUpdated":null,
                  "importePagado":0,"payment":null,"chequeraCuota":null,"reservaVacante":null}
                 """, encoder.bodyJson(), true);
 

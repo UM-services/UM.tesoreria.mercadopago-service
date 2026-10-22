@@ -17,8 +17,10 @@ public class PagoProcesadoMapper {
                 .statusDetail(evento.getStatusDetail())
                 .dateApproved(evento.getDateApproved())
                 .dateCreated(evento.getDateCreated())
+                .dateLastUpdated(evento.getDateLastUpdated())
                 .transactionAmount(evento.getTransactionAmount())
                 .paymentJson(evento.getPaymentJson())
+                .source(evento.getSource())
                 .build();
     }
 

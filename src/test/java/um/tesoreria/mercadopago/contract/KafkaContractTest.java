@@ -40,9 +40,12 @@ class KafkaContractTest {
         JsonNode node = new ObjectMapper().readTree(payload);
         assertThat(node.fieldNames()).toIterable().containsExactlyInAnyOrder(
                 "mercadoPagoContextId", "chequeraCuotaId", "reservaVacanteId", "paymentId", "status",
-                "statusDetail", "dateApproved", "dateCreated", "transactionAmount", "paymentJson");
+                "statusDetail", "dateApproved", "dateCreated", "dateLastUpdated", "transactionAmount",
+                "paymentJson", "source");
         assertThat(node.get("paymentId").asText()).isEqualTo("12345");
         assertThat(node.get("transactionAmount").decimalValue()).isEqualByComparingTo("1234.50");
+        assertThat(node.get("source").asText()).isEqualTo("WEBHOOK_V1");
+        assertThat(node.get("dateLastUpdated").asText()).isEqualTo("2026-10-31T01:00:00Z");
         assertThat(headers.lastHeader("__TypeId__")).isNull();
     }
 
@@ -112,8 +115,10 @@ class KafkaContractTest {
                 .statusDetail("accredited")
                 .dateApproved(OffsetDateTime.of(2026, 10, 31, 0, 0, 0, 0, ZoneOffset.UTC))
                 .dateCreated(OffsetDateTime.of(2026, 10, 30, 0, 0, 0, 0, ZoneOffset.UTC))
+                .dateLastUpdated(OffsetDateTime.of(2026, 10, 31, 1, 0, 0, 0, ZoneOffset.UTC))
                 .transactionAmount(new BigDecimal("1234.50"))
                 .paymentJson("{\"id\":12345}")
+                .source("WEBHOOK_V1")
                 .build();
     }
 

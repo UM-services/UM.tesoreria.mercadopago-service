@@ -2,6 +2,33 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.12.0] - 2026-10-22
+
+### Added
+- feat(pago): El evento `payment-processed` incorpora `source` (`WEBHOOK_V1` | `IPN_LEGACY` | `MANUAL`) y `dateLastUpdated` (el `date_last_updated` del pago en Mercado Pago). Nuevo enum `OrigenNotificacion` y parámetro `origen` en `RecuperarYPublicarPagoUseCase`; `PagoMapper` mapea `Payment.getDateLastUpdated()` (sdk 3.7.0) (fuente: `OrigenNotificacion.java`, `PagoProcesadoEvento.java`, `PaymentProcessedEvent.java`, `PagoProcesadoMapper.java`, `RecuperarYPublicarPagoUseCaseImpl.java`, `PagoMapper.java`).
+- feat(pago): Propiedad `app.webhook.legacy-ipn-enabled` (env `APP_WEBHOOK_LEGACY_IPN_ENABLED`, default `false`). Con el fallback apagado el IPN legacy responde `200` "Notificación legacy ignorada" (ack sin reintentos de MP) y no publica; con `true` procesa y publica con `source=IPN_LEGACY`. Nuevo estado `EstadoWebhookPago.LEGACY_IGNORADA` mapeado a `200` (fuente: `ProcesarWebhookPagoUseCaseImpl.java`, `EstadoWebhookPago.java`, `PaymentController.java`, `bootstrap.yml`, `README.md`).
+- feat(tests): Cobertura del origen en `RecuperarYPublicarPagoUseCaseImplTest` (incluye `MANUAL`) y del flag legacy en `ProcesarWebhookPagoUseCaseImplTest`/`PaymentControllerTest`; `KafkaContractTest`/`WireFormatContractTest` actualizados con los campos nuevos.
+- feat(pago): Propiedad `app.webhook.signature-validation` (env `APP_WEBHOOK_SIGNATURE_VALIDATION`, default `true`). En `false` el listener procesa la notificación aunque la firma falte o no coincida (modo permisivo para entornos de prueba) y deja una traza informativa con `ts`, prefijo de `v1` y huella SHA-256 del secret en uso (fuente: `ProcesarWebhookPagoUseCaseImpl.java`, `bootstrap.yml`, `README.md`).
+- feat(pago): `MercadoPagoClientAdapter` loguea `status` y `response` (truncado a 1000 caracteres) ante errores HTTP de Mercado Pago al recuperar pagos y preferencias (fuente: `MercadoPagoClientAdapter.java`).
+- feat(renovacion): Nuevo slice `procesos/renovacion` con `RenovarVencimientosUseCase`: recorre por paginas (keyset) los contextos activos cuyo vencimiento publicado cayo en las ultimas 72 h y publica el vencimiento siguiente en Mercado Pago. Devuelve un resumen con escaneados/actualizados/creados/sinCambios/fallidos y duracion (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/renovacion/**`).
+- feat(renovacion): Nuevo scheduler `RenovacionScheduled` a las **00:30** `America/Argentina/Mendoza`, configurable con `app.renovacion.*` y desactivable con `app.renovacion.enabled=false` (fuente: `RenovacionScheduled.java`, `bootstrap.yml`).
+- feat(renovacion): Endpoint manual `POST /api/tesoreria/mercadopago/renovacion/run` con body `{"lookbackDias":3,"dryRun":true}` (sin query params) para validar la seleccion sin tocar Mercado Pago ni el core (fuente: `RenovacionController.java`, `SolicitudRenovacion.java`).
+- feat(persistencia): Nuevo puerto `actualizarPreferencia` / `marcarChanged` que persiste solo los campos de la preferencia (`fechaVencimiento`, `importe`, `initPoint`, `preferenceId`, `preference`, `changed`, `lastVencimientoUpdated`) via `PATCH /mercadopago/updateContext/{id}/preferencia`, sin pisar datos de pago (fuente: `ContextoRepository.java`, `ContextoClientAdapter.java`).
+- feat(tests): `RenovarVencimientosUseCaseImplTest` cubre dryRun, actualizacion, recreacion de preferencia inexistente, fallo con reintento, sin cambios y paginacion (fuente: `src/test/java/.../procesos/renovacion/**`).
+- feat(persistencia): `ContextoMercadoPago`, `MercadoPagoContextDto` y `ContextoMercadoPagoDtoMapper` incorporan `dateLastUpdated` del pago para reenviarlo al core sin borrarlo en los `PUT` completos (fuente: `ContextoMercadoPago.java`, `MercadoPagoContextDto.java`, `ContextoMercadoPagoDtoMapper.java`).
+- docs: Nuevo `docs/idempotencia-payment-processed.md` con la guia operativa cross-repo (core, umhub y este productor) para habilitar la idempotencia end-to-end, enlazado desde el README.
+
+### Changed
+- refactor(webhook): El listener de pagos ahora responde `401` ante firma faltante o inválida, `400` ante `data.id` faltante/inválido y `502` cuando no se pudo recuperar el pago, para que Mercado Pago reintente; antes respondía `200` en todos los casos. Se agrega fallback de IPN legacy (`?id=<paymentId>&topic=payment`) y las notificaciones `topic=merchant_order` se acknowledgean con `200` e ignoran (fuente: `PaymentController.java`, `ProcesarWebhookPagoUseCaseImpl.java`, `HttpContractTest.java`).
+- refactor(checking): `ChequearTodasUseCaseImpl` omite los contextos sin `chequeraCuotaId`, aisla cada item con `try/catch` y loguea un resumen (antes el primer contexto de reserva de vacante abortaba la corrida completa) (fuente: `ChequearTodasUseCaseImpl.java`).
+- refactor(checking): `ChequearCuotaUseCaseImpl` persiste solo si la preferencia es nueva o si el core marco `changed = 1`, igual que `PreferenciaCuotaService.crearYGuardar` (fuente: `ChequearCuotaUseCaseImpl.java`).
+- refactor(checking): El barrido legado de 90 dias queda marcado `@Deprecated` (scheduler, `ChequearTodasUseCase`, `/checking/all/active`, `ContextoQueryClient`, `getActivosParaCambiar`) y deshabilitado por defecto (`app.checking.legacy-scheduler.enabled=false`); lo reemplaza `RenovacionScheduled`. Se mantiene `GET /checking/cuota/{id}` como herramienta manual (fuente: `CheckingScheduled.java`, `ChequearTodasUseCase.java`, `CheckingController.java`, `bootstrap.yml`).
+- chore(config): Nuevas propiedades `app.renovacion.enabled|cron|zone|lookback-dias|page-size|max-fallidos-detalle` (fuente: `bootstrap.yml`).
+- chore(config): Consul usa `/actuator/health/readiness` como health check y poda la instancia si queda critica a los 5 minutos (`health-check-critical-timeout: 5m`) (fuente: `bootstrap.yml`).
+- fix(seguridad): `FirmaWebhook.validar` rechaza entradas nulas y compara el HMAC con `MessageDigest.isEqual` (tiempo constante); `ReferenciaExterna.parse` devuelve `null` ante una referencia externa vacia en lugar de fallar (fuente: `FirmaWebhook.java`, `FirmaWebhookTest.java`, `ReferenciaExterna.java`).
+- refactor(preferenciaCuota): `ActualizarPreferenciaCuotaUseCase` acepta la `ChequeraCuota` ya cargada para no volver a pedirla al core (fuente: `ActualizarPreferenciaCuotaUseCase.java`, `ActualizarPreferenciaCuotaUseCaseImpl.java`, `CrearPreferenciaCuotaUseCaseImpl.java`).
+- chore(deps): SDK Java de Mercado Pago 3.2.1 → 3.7.0 (aporta `Payment.getDateLastUpdated()`), springdoc-openapi 3.0.3 → 3.1.1, commons-lang3 3.20.0 → 3.21.0, plexus-utils 4.0.3 → 4.1.0 y pin explicito de gson 2.14.0 (el BOM de Spring Boot lo resolvia a 2.13.2) (fuente: `pom.xml`).
+
 ## [0.11.0] - 2026-10-20
 
 ### Added

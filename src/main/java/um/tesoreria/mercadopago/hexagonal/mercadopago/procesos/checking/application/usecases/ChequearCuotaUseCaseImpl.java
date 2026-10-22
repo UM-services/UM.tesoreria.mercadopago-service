@@ -18,15 +18,28 @@ public class ChequearCuotaUseCaseImpl implements ChequearCuotaUseCase {
     @Override
     public String chequear(Long chequeraCuotaId) {
         log.debug("Processing ChequearCuotaUseCaseImpl.chequear -> {}", chequeraCuotaId);
+        if (chequeraCuotaId == null) {
+            log.debug("chequear() recibió un id nulo: se omite");
+            return "Checked";
+        }
+
         var contextoConCuota = contextoService.crearContexto(chequeraCuotaId);
-        if (contextoConCuota != null) {
-            var contexto = preferenciaCuotaService.crear(contextoConCuota.getContexto(), contextoConCuota.getCuota());
-            if (contexto != null) {
-                try {
-                    contextoService.actualizar(contexto);
-                } catch (Exception e) {
-                    log.error("Error updating context in Core: {}", e.getMessage());
-                }
+        if (contextoConCuota == null || contextoConCuota.getContexto() == null) {
+            log.debug("Sin contexto para chequear la cuota {}", chequeraCuotaId);
+            return "Checked";
+        }
+
+        var contexto = contextoConCuota.getContexto();
+        // Solo se persiste si la preferencia es nueva o si el core detectó un cambio de vencimiento.
+        boolean requierePersistencia = contexto.getInitPoint() == null
+                || Byte.valueOf((byte) 1).equals(contexto.getChanged());
+
+        var resultado = preferenciaCuotaService.crear(contexto, contextoConCuota.getCuota());
+        if (requierePersistencia && resultado != null && resultado.getInitPoint() != null) {
+            try {
+                contextoService.actualizar(resultado);
+            } catch (Exception e) {
+                log.error("Error updating context in Core: {}", e.getMessage());
             }
         }
         return "Checked";

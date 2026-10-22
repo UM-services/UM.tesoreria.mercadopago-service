@@ -31,7 +31,7 @@ public class CrearPreferenciaCuotaUseCaseImpl implements CrearPreferenciaCuotaUs
 
         if (contexto.getInitPoint() != null) {
             if (contexto.getChanged() == 1) {
-                return actualizarPreferenciaCuotaUseCase.actualizar(contexto);
+                return actualizarPreferenciaCuotaUseCase.actualizar(contexto, cuota);
             }
             return contexto;
         }

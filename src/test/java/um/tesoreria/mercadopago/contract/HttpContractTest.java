@@ -15,11 +15,15 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.chequera.infrastr
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.checking.application.service.CheckingService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.checking.infrastructure.web.controller.CheckingController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.application.service.PagoService;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.EstadoWebhookPago;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.ResultadoWebhookPago;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.infrastructure.web.controller.PaymentController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.application.service.PreferenciaCuotaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.infrastructure.web.controller.PreferenceCuotaController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaVacante.application.service.PreferenciaVacanteService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaVacante.infrastructure.web.controller.PreferenceVacanteController;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.renovacion.domain.ports.in.RenovarVencimientosUseCase;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.renovacion.infrastructure.web.controller.RenovacionController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ChequeraCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoConCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoMercadoPago;
@@ -59,6 +63,7 @@ class HttpContractTest {
     private PagoService pagoService;
     private ChequeraService chequeraService;
     private CheckingService checkingService;
+    private RenovarVencimientosUseCase renovarVencimientosUseCase;
     private PreferenciaDtoMapper preferenciaDtoMapper;
     private ContextoMercadoPagoDtoMapper contextoMapper;
     private MockMvc mockMvc;
@@ -70,6 +75,7 @@ class HttpContractTest {
         pagoService = mock(PagoService.class);
         chequeraService = mock(ChequeraService.class);
         checkingService = mock(CheckingService.class);
+        renovarVencimientosUseCase = mock(RenovarVencimientosUseCase.class);
         contextoMapper = new ContextoMercadoPagoDtoMapper();
         preferenciaDtoMapper = new PreferenciaDtoMapper(contextoMapper,
                 new ChequeraCuotaDtoMapper(), new ReservaVacanteDtoMapper());
@@ -79,12 +85,13 @@ class HttpContractTest {
                 new PreferenceVacanteController(preferenciaVacanteService, preferenciaDtoMapper, contextoMapper),
                 new PaymentController(pagoService),
                 new ChequeraController(chequeraService, preferenciaDtoMapper),
-                new CheckingController(checkingService)
+                new CheckingController(checkingService),
+                new RenovacionController(renovarVencimientosUseCase)
         ).build();
     }
 
     @Test
-    void declaraLosNueveEndpointsConLasMismasRutasYVerbos() {
+    void declaraLosDiezEndpointsConLasMismasRutasYVerbos() {
         assertThat(PreferenceCuotaController.class.getAnnotation(RequestMapping.class).value())
                 .containsExactly("/api/tesoreria/mercadopago/preference");
         assertThat(PreferenceVacanteController.class.getAnnotation(RequestMapping.class).value())
@@ -95,13 +102,16 @@ class HttpContractTest {
                 .containsExactly("/api/tesoreria/mercadopago/chequera");
         assertThat(CheckingController.class.getAnnotation(RequestMapping.class).value())
                 .containsExactly("/api/tesoreria/mercadopago/checking");
+        assertThat(RenovacionController.class.getAnnotation(RequestMapping.class).value())
+                .containsExactly("/api/tesoreria/mercadopago/renovacion");
 
         Map<String, String> rutas = Stream.of(
                         rutas(PreferenceCuotaController.class),
                         rutas(PreferenceVacanteController.class),
                         rutas(PaymentController.class),
                         rutas(ChequeraController.class),
-                        rutas(CheckingController.class))
+                        rutas(CheckingController.class),
+                        rutas(RenovacionController.class))
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -114,7 +124,8 @@ class HttpContractTest {
                 .containsEntry("ChequeraController.createChequeraContextBulk", "GET /create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}")
                 .containsEntry("CheckingController.checkingCuota", "GET /cuota/{chequeraCuotaId}")
                 .containsEntry("CheckingController.checkingAllActive", "GET /all/active")
-                .hasSize(9);
+                .containsEntry("RenovacionController.ejecutar", "POST /run")
+                .hasSize(10);
     }
 
     @Test
@@ -160,7 +171,7 @@ class HttpContractTest {
 
     @Test
     void listenerUsaElQueryParamYDevuelveElMensajeExacto() throws Exception {
-        when(pagoService.processPaymentWebhook(any(), eq("12345"))).thenReturn("Payment processed");
+        when(pagoService.processPaymentWebhook(any(), eq("12345"))).thenReturn(procesado());
 
         mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener").param("data.id", "12345"))
                 .andExpect(status().isOk())
@@ -171,7 +182,7 @@ class HttpContractTest {
 
     @Test
     void listenerUsaElDataIdDelBodyCuandoNoVieneEnLaUrl() throws Exception {
-        when(pagoService.processPaymentWebhook(any(), eq("67890"))).thenReturn("Payment processed");
+        when(pagoService.processPaymentWebhook(any(), eq("67890"))).thenReturn(procesado());
 
         mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -183,22 +194,65 @@ class HttpContractTest {
     }
 
     @Test
-    void listenerLlamaAlServicioConNullSiNoHayDataId() throws Exception {
+    void listenerUsaElIdLegacyCuandoElTopicEsPayment() throws Exception {
+        when(pagoService.processLegacyPaymentNotification("184276812795")).thenReturn(procesado());
+
+        mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener")
+                        .param("id", "184276812795")
+                        .param("topic", "payment"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Payment processed"));
+
+        verify(pagoService).processLegacyPaymentNotification("184276812795");
+    }
+
+    @Test
+    void listenerIgnoraElTopicMerchantOrder() throws Exception {
+        mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener")
+                        .param("id", "45431143883")
+                        .param("topic", "merchant_order"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Notificación ignorada: topic merchant_order"));
+    }
+
+    @Test
+    void listenerDevuelve400SiNoHayDataIdNiIdLegacy() throws Exception {
         when(pagoService.processPaymentWebhook(any(), eq(null)))
-                .thenReturn("Falta el parámetro data.id en la URL");
+                .thenReturn(new ResultadoWebhookPago(EstadoWebhookPago.DATA_ID_FALTANTE,
+                        "Falta el parámetro data.id en la URL"));
 
         mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener"))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(content().string("Falta el parámetro data.id en la URL"));
     }
 
     @Test
+    void listenerDevuelve401CuandoLaFirmaEsInvalida() throws Exception {
+        when(pagoService.processPaymentWebhook(any(), eq("12345")))
+                .thenReturn(new ResultadoWebhookPago(EstadoWebhookPago.FIRMA_INVALIDA, "Firma inválida"));
+
+        mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener").param("data.id", "12345"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string("Firma inválida"));
+    }
+
+    @Test
     void updateDePagoDevuelve200SinBody() throws Exception {
+        when(pagoService.retrieveAndPublishPayment("12345")).thenReturn(true);
+
         mockMvc.perform(get("/api/tesoreria/mercadopago/payment/update/12345"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(""));
 
         verify(pagoService).retrieveAndPublishPayment("12345");
+    }
+
+    @Test
+    void updateDePagoDevuelve502SiNoSePuedeRecuperar() throws Exception {
+        when(pagoService.retrieveAndPublishPayment("12345")).thenReturn(false);
+
+        mockMvc.perform(get("/api/tesoreria/mercadopago/payment/update/12345"))
+                .andExpect(status().isBadGateway());
     }
 
     @Test
@@ -243,6 +297,10 @@ class HttpContractTest {
     void losEndpointsGetNoAceptanPost() throws Exception {
         mockMvc.perform(post("/api/tesoreria/mercadopago/checking/all/active"))
                 .andExpect(status().isMethodNotAllowed());
+    }
+
+    private ResultadoWebhookPago procesado() {
+        return new ResultadoWebhookPago(EstadoWebhookPago.PROCESADO, "Payment processed");
     }
 
     private ContextoMercadoPago contexto(Long id) {

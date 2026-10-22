@@ -16,6 +16,10 @@ public class CheckingService {
         return chequearCuotaUseCase.chequear(chequeraCuotaId);
     }
 
+    /**
+     * @deprecated Barrido legado (90 días). Usar {@code POST /renovacion/run}.
+     */
+    @Deprecated
     public String checkingAllActive() {
         return chequearTodasUseCase.chequearTodas();
     }

@@ -7,6 +7,7 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.appli
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mensajeria.application.service.MensajeriaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mensajeria.domain.model.PagoProcesadoEvento;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.ReferenciaExterna;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.OrigenNotificacion;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.ports.in.RecuperarYPublicarPagoUseCase;
 
 @Component
@@ -18,20 +19,22 @@ public class RecuperarYPublicarPagoUseCaseImpl implements RecuperarYPublicarPago
     private final MensajeriaService mensajeriaService;
 
     @Override
-    public void recuperarYPublicar(String dataId) {
-        log.debug("\n\nProcessing RecuperarYPublicarPagoUseCaseImpl.recuperarYPublicar for {}\n\n", dataId);
+    public boolean recuperarYPublicar(String dataId, OrigenNotificacion origen) {
+        log.debug("\n\nProcessing RecuperarYPublicarPagoUseCaseImpl.recuperarYPublicar for {} (origen {})\n\n",
+                dataId, origen);
 
         long paymentId = Long.parseLong(dataId);
         var pago = mercadoPagoService.recuperarPago(paymentId).orElse(null);
         if (pago == null) {
-            return;
+            log.error("No se pudo recuperar el pago {} desde Mercado Pago", dataId);
+            return false;
         }
 
         log.info("\nExternalReference: {}", pago.getExternalReference());
         ReferenciaExterna referencia = ReferenciaExterna.parse(pago.getExternalReference());
         if (referencia == null) {
             log.error("Formato inválido de externalReference: {}", pago.getExternalReference());
-            return;
+            return false;
         }
 
         log.debug("\n\nPublish Payment Event\n\n");
@@ -44,9 +47,12 @@ public class RecuperarYPublicarPagoUseCaseImpl implements RecuperarYPublicarPago
                 .statusDetail(pago.getStatusDetail())
                 .dateApproved(pago.getDateApproved())
                 .dateCreated(pago.getDateCreated())
+                .dateLastUpdated(pago.getDateLastUpdated())
                 .transactionAmount(pago.getTransactionAmount())
                 .paymentJson(pago.getJson())
+                .source(origen.name())
                 .build());
+        return true;
     }
 
 }
