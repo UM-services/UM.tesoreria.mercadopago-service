@@ -89,8 +89,11 @@ class WireFormatContractTest {
         JsonNode node = MAPPER.readTree(MAPPER.writeValueAsString(dto));
 
         assertThat(node.fieldNames()).toIterable().containsExactlyInAnyOrder(
-                "mercadoPagoContext", "chequeraCuota", "reservaVacante");
+                "mercadoPagoContext", "chequeraCuota", "reservaVacante",
+                "fechaVencimientoDestino", "importeDestino");
         assertThat(node.get("chequeraCuota").isNull()).isTrue();
+        assertThat(node.get("fechaVencimientoDestino").isNull()).isTrue();
+        assertThat(node.get("importeDestino").isNull()).isTrue();
         assertThat(node.get("reservaVacante").get("campanha").get("nombre").asText())
                 .isEqualTo("Curso de verano");
     }

@@ -76,10 +76,11 @@ class PreferenciaCuotaUseCasesTest {
         var contexto = contexto();
         contexto.setInitPoint("https://mp/init");
         contexto.setChanged((byte) 1);
-        when(actualizarPreferenciaCuotaUseCase.actualizar(contexto)).thenReturn(contexto);
+        var cuota = cuota();
+        when(actualizarPreferenciaCuotaUseCase.actualizar(contexto, cuota)).thenReturn(contexto);
 
-        assertThat(crearUseCase.crear(contexto, cuota())).isSameAs(contexto);
-        verify(actualizarPreferenciaCuotaUseCase).actualizar(contexto);
+        assertThat(crearUseCase.crear(contexto, cuota)).isSameAs(contexto);
+        verify(actualizarPreferenciaCuotaUseCase).actualizar(contexto, cuota);
     }
 
     @Test

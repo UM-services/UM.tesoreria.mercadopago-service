@@ -6,10 +6,14 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.port
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.ports.in.ActualizarContextosUseCase;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.ports.in.CrearContextoUseCase;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.ports.in.CrearContextosChequeraUseCase;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.ports.in.FindRenovacionesUseCase;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.ports.in.GetContextosActivosUseCase;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.domain.ports.in.UpdatePreferenciaContextoUseCase;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.CandidatoRenovacion;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoConCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoMercadoPago;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -21,6 +25,8 @@ public class ContextoService {
     private final ActualizarContextoUseCase actualizarContextoUseCase;
     private final ActualizarContextosUseCase actualizarContextosUseCase;
     private final GetContextosActivosUseCase getContextosActivosUseCase;
+    private final FindRenovacionesUseCase findRenovacionesUseCase;
+    private final UpdatePreferenciaContextoUseCase updatePreferenciaContextoUseCase;
 
     public ContextoConCuota crearContexto(Long chequeraCuotaId) {
         return crearContextoUseCase.crear(chequeraCuotaId);
@@ -43,6 +49,19 @@ public class ContextoService {
 
     public List<Long> getActivosParaCambiar() {
         return getContextosActivosUseCase.getActivosParaCambiar();
+    }
+
+    public List<CandidatoRenovacion> findRenovaciones(int lookbackDias, boolean reintentos,
+                                                     OffsetDateTime afterFecha, Long afterId, int size) {
+        return findRenovacionesUseCase.findRenovaciones(lookbackDias, reintentos, afterFecha, afterId, size);
+    }
+
+    public void actualizarPreferencia(ContextoMercadoPago contexto) {
+        updatePreferenciaContextoUseCase.actualizarPreferencia(contexto);
+    }
+
+    public void marcarChanged(Long mercadoPagoContextId, byte changed) {
+        updatePreferenciaContextoUseCase.marcarChanged(mercadoPagoContextId, changed);
     }
 
 }

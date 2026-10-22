@@ -5,6 +5,13 @@ app:
   access-token: access-token
   notification-url: notification-url
   secret-key: secret-key
+  renovacion:
+    enabled: ${APP_RENOVACION_ENABLED:true}
+    cron: "${APP_RENOVACION_CRON:0 30 0 * * *}"
+    zone: ${APP_RENOVACION_ZONE:America/Argentina/Mendoza}
+    lookback-dias: ${APP_RENOVACION_LOOKBACK_DIAS:3}
+    page-size: ${APP_RENOVACION_PAGE_SIZE:200}
+    max-fallidos-detalle: ${APP_RENOVACION_MAX_FALLIDOS:50}
   consul:
     host: consul-service
     port: 8500

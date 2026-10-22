@@ -20,6 +20,8 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.infrastructure.web.controller.PreferenceCuotaController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaVacante.application.service.PreferenciaVacanteService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaVacante.infrastructure.web.controller.PreferenceVacanteController;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.renovacion.domain.ports.in.RenovarVencimientosUseCase;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.renovacion.infrastructure.web.controller.RenovacionController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ChequeraCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoConCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoMercadoPago;
@@ -59,6 +61,7 @@ class HttpContractTest {
     private PagoService pagoService;
     private ChequeraService chequeraService;
     private CheckingService checkingService;
+    private RenovarVencimientosUseCase renovarVencimientosUseCase;
     private PreferenciaDtoMapper preferenciaDtoMapper;
     private ContextoMercadoPagoDtoMapper contextoMapper;
     private MockMvc mockMvc;
@@ -70,6 +73,7 @@ class HttpContractTest {
         pagoService = mock(PagoService.class);
         chequeraService = mock(ChequeraService.class);
         checkingService = mock(CheckingService.class);
+        renovarVencimientosUseCase = mock(RenovarVencimientosUseCase.class);
         contextoMapper = new ContextoMercadoPagoDtoMapper();
         preferenciaDtoMapper = new PreferenciaDtoMapper(contextoMapper,
                 new ChequeraCuotaDtoMapper(), new ReservaVacanteDtoMapper());
@@ -79,12 +83,13 @@ class HttpContractTest {
                 new PreferenceVacanteController(preferenciaVacanteService, preferenciaDtoMapper, contextoMapper),
                 new PaymentController(pagoService),
                 new ChequeraController(chequeraService, preferenciaDtoMapper),
-                new CheckingController(checkingService)
+                new CheckingController(checkingService),
+                new RenovacionController(renovarVencimientosUseCase)
         ).build();
     }
 
     @Test
-    void declaraLosNueveEndpointsConLasMismasRutasYVerbos() {
+    void declaraLosDiezEndpointsConLasMismasRutasYVerbos() {
         assertThat(PreferenceCuotaController.class.getAnnotation(RequestMapping.class).value())
                 .containsExactly("/api/tesoreria/mercadopago/preference");
         assertThat(PreferenceVacanteController.class.getAnnotation(RequestMapping.class).value())
@@ -95,13 +100,16 @@ class HttpContractTest {
                 .containsExactly("/api/tesoreria/mercadopago/chequera");
         assertThat(CheckingController.class.getAnnotation(RequestMapping.class).value())
                 .containsExactly("/api/tesoreria/mercadopago/checking");
+        assertThat(RenovacionController.class.getAnnotation(RequestMapping.class).value())
+                .containsExactly("/api/tesoreria/mercadopago/renovacion");
 
         Map<String, String> rutas = Stream.of(
                         rutas(PreferenceCuotaController.class),
                         rutas(PreferenceVacanteController.class),
                         rutas(PaymentController.class),
                         rutas(ChequeraController.class),
-                        rutas(CheckingController.class))
+                        rutas(CheckingController.class),
+                        rutas(RenovacionController.class))
                 .flatMap(map -> map.entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -114,7 +122,8 @@ class HttpContractTest {
                 .containsEntry("ChequeraController.createChequeraContextBulk", "GET /create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}")
                 .containsEntry("CheckingController.checkingCuota", "GET /cuota/{chequeraCuotaId}")
                 .containsEntry("CheckingController.checkingAllActive", "GET /all/active")
-                .hasSize(9);
+                .containsEntry("RenovacionController.ejecutar", "POST /run")
+                .hasSize(10);
     }
 
     @Test

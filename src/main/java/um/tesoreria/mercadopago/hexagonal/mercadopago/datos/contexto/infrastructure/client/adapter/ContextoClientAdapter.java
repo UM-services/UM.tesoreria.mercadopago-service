@@ -7,11 +7,15 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.infrastruct
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.infrastructure.client.ContextoQueryClient;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoConCuota;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.ContextoMercadoPago;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.domain.model.CandidatoRenovacion;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.MercadoPagoContextDto;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.PreferenciaPatchDto;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.RenovacionesCandidatosRequestDto;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.dto.UMPreferenceMPDto;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.mapper.ChequeraCuotaDtoMapper;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.shared.infrastructure.mapper.ContextoMercadoPagoDtoMapper;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Component
@@ -59,6 +63,53 @@ public class ContextoClientAdapter implements ContextoRepository {
     @Override
     public List<Long> findActivosParaCambiar() {
         return contextoQueryClient.findAllActiveToChange();
+    }
+
+    @Override
+    public List<CandidatoRenovacion> findRenovaciones(int lookbackDias, boolean reintentos,
+                                                     OffsetDateTime afterFecha, Long afterId, int size) {
+        var request = RenovacionesCandidatosRequestDto.builder()
+                .lookbackDias(lookbackDias)
+                .reintentos(reintentos)
+                .afterFecha(afterFecha)
+                .afterId(afterId)
+                .size(size)
+                .build();
+        return contextoCoreClient.findRenovaciones(request)
+                .stream()
+                .map(this::toCandidato)
+                .toList();
+    }
+
+    @Override
+    public void actualizarPreferencia(ContextoMercadoPago contexto) {
+        PreferenciaPatchDto patch = PreferenciaPatchDto.builder()
+                .fechaVencimiento(contexto.getFechaVencimiento())
+                .importe(contexto.getImporte())
+                .initPoint(contexto.getInitPoint())
+                .preferenceId(contexto.getPreferenceId())
+                .preference(contexto.getPreference())
+                .changed(contexto.getChanged())
+                .lastVencimientoUpdated(contexto.getLastVencimientoUpdated())
+                .build();
+        contextoCoreClient.updatePreferencia(patch, contexto.getMercadoPagoContextId());
+    }
+
+    @Override
+    public void marcarChanged(Long mercadoPagoContextId, byte changed) {
+        var patch = PreferenciaPatchDto.builder().changed(changed).build();
+        contextoCoreClient.updatePreferencia(patch, mercadoPagoContextId);
+    }
+
+    private CandidatoRenovacion toCandidato(UMPreferenceMPDto dto) {
+        if (dto == null) {
+            return null;
+        }
+        return new CandidatoRenovacion(
+                contextoMapper.toDomain(dto.getMercadoPagoContext()),
+                cuotaMapper.toDomain(dto.getChequeraCuota()),
+                dto.getFechaVencimientoDestino(),
+                dto.getImporteDestino());
     }
 
     private ContextoConCuota toDomain(UMPreferenceMPDto dto) {
