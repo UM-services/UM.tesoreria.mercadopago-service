@@ -12,6 +12,13 @@ app:
     lookback-dias: ${APP_RENOVACION_LOOKBACK_DIAS:3}
     page-size: ${APP_RENOVACION_PAGE_SIZE:200}
     max-fallidos-detalle: ${APP_RENOVACION_MAX_FALLIDOS:50}
+  webhook:
+    # Solo para entornos de prueba: con credenciales de testeo Mercado Pago firma con otro secret
+    # y la validación nunca pasa. false = modo permisivo (procesa igual y deja traza informativa).
+    signature-validation: ${APP_WEBHOOK_SIGNATURE_VALIDATION:true}
+    # Fallback IPN legacy (?id=<paymentId>&topic=payment). Apagado por defecto: habilitarlo sólo en
+    # entornos controlados y con los consumidores idempotentes ya desplegados.
+    legacy-ipn-enabled: ${APP_WEBHOOK_LEGACY_IPN_ENABLED:false}
   consul:
     host: consul-service
     port: 8500

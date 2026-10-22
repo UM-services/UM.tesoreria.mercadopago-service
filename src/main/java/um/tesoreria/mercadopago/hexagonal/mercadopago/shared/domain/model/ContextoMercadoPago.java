@@ -44,6 +44,9 @@ public class ContextoMercadoPago {
     private OffsetDateTime fechaPago;
     private OffsetDateTime fechaAcreditacion;
 
+    /** {@code date_last_updated} del pago en MP; viaja en el PUT completo para no borrarlo en core. */
+    private OffsetDateTime dateLastUpdated;
+
     @Builder.Default
     private BigDecimal importePagado = BigDecimal.ZERO;
 

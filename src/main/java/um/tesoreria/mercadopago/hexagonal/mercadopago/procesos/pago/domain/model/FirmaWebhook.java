@@ -3,6 +3,7 @@ package um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.mode
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.HexFormat;
 
 public final class FirmaWebhook {
@@ -13,13 +14,16 @@ public final class FirmaWebhook {
     }
 
     public static boolean validar(String secretKey, String manifest, String firmaEsperada) {
+        if (secretKey == null || secretKey.isEmpty() || manifest == null || firmaEsperada == null) {
+            return false;
+        }
         try {
             Mac mac = Mac.getInstance(HMAC_ALGORITHM);
             SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), HMAC_ALGORITHM);
             mac.init(secretKeySpec);
-            byte[] hmacData = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
-            String firmaGenerada = HexFormat.of().formatHex(hmacData);
-            return firmaGenerada.equalsIgnoreCase(firmaEsperada);
+            byte[] firmaCalculada = mac.doFinal(manifest.getBytes(StandardCharsets.UTF_8));
+            byte[] firmaRecibida = HexFormat.of().parseHex(firmaEsperada.trim());
+            return MessageDigest.isEqual(firmaCalculada, firmaRecibida);
         } catch (Exception e) {
             return false;
         }

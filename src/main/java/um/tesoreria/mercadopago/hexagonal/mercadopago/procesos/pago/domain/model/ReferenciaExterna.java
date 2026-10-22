@@ -8,6 +8,9 @@ public record ReferenciaExterna(Long chequeraCuotaId, Long mercadoPagoContextId,
     private static final int PARTES_REFERENCIA_CORTA = 3;
 
     public static ReferenciaExterna parse(String externalReference) {
+        if (externalReference == null || externalReference.isBlank()) {
+            return null;
+        }
         String[] parts = externalReference.split(SEPARADOR);
 
         if (parts.length == 6) {

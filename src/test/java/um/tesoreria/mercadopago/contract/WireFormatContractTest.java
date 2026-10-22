@@ -42,6 +42,7 @@ class WireFormatContractTest {
                 .status("approved")
                 .fechaPago(FECHA)
                 .fechaAcreditacion(FECHA)
+                .dateLastUpdated(FECHA.plusHours(2))
                 .importePagado(new BigDecimal("1234.50"))
                 .payment("{\"id\":1}")
                 .build();
@@ -52,7 +53,8 @@ class WireFormatContractTest {
                 "mercadoPagoContextId", "chequeraCuotaId", "reservaVacanteId", "initPoint",
                 "fechaVencimiento", "importe", "changed", "lastVencimientoUpdated", "preferenceId",
                 "preference", "activo", "chequeraPagoId", "idMercadoPago", "status", "fechaPago",
-                "fechaAcreditacion", "importePagado", "payment", "chequeraCuota", "reservaVacante");
+                "fechaAcreditacion", "dateLastUpdated", "importePagado", "payment", "chequeraCuota",
+                "reservaVacante");
         assertThat(node.get("fechaVencimiento").asText()).isEqualTo("2026-10-31T00:00:00Z");
         assertThat(node.get("reservaVacanteId").asText()).isEqualTo("550e8400-e29b-41d4-a716-446655440000");
         assertThat(node.get("importe").decimalValue()).isEqualByComparingTo("1234.50");
@@ -125,17 +127,24 @@ class WireFormatContractTest {
                 .statusDetail("accredited")
                 .dateApproved(FECHA)
                 .dateCreated(FECHA)
+                .dateLastUpdated(FECHA.plusHours(1))
                 .transactionAmount(new BigDecimal("1234.50"))
                 .paymentJson("{\"id\":12345}")
+                .source("IPN_LEGACY")
                 .build();
 
         JsonNode node = MAPPER.readTree(MAPPER.writeValueAsString(event));
 
         assertThat(node.fieldNames()).toIterable().containsExactlyInAnyOrder(
                 "mercadoPagoContextId", "chequeraCuotaId", "reservaVacanteId", "paymentId", "status",
-                "statusDetail", "dateApproved", "dateCreated", "transactionAmount", "paymentJson");
+                "statusDetail", "dateApproved", "dateCreated", "dateLastUpdated", "transactionAmount",
+                "paymentJson", "source");
         assertThat(node.has("dateApproved")).isTrue();
+        // El formato real de las fechas en el wire (ISO-8601) lo verifica KafkaContractTest con el
+        // serializer de producción: este mapper de tools.jackson escribe epochs por defecto.
+        assertThat(node.has("dateLastUpdated")).isTrue();
         assertThat(node.get("transactionAmount").decimalValue()).isEqualByComparingTo("1234.50");
+        assertThat(node.get("source").asText()).isEqualTo("IPN_LEGACY");
     }
 
 }

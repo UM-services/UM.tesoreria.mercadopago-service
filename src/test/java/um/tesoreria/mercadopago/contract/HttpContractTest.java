@@ -15,6 +15,8 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.chequera.infrastr
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.checking.application.service.CheckingService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.checking.infrastructure.web.controller.CheckingController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.application.service.PagoService;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.EstadoWebhookPago;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.domain.model.ResultadoWebhookPago;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.pago.infrastructure.web.controller.PaymentController;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.application.service.PreferenciaCuotaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota.infrastructure.web.controller.PreferenceCuotaController;
@@ -169,7 +171,7 @@ class HttpContractTest {
 
     @Test
     void listenerUsaElQueryParamYDevuelveElMensajeExacto() throws Exception {
-        when(pagoService.processPaymentWebhook(any(), eq("12345"))).thenReturn("Payment processed");
+        when(pagoService.processPaymentWebhook(any(), eq("12345"))).thenReturn(procesado());
 
         mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener").param("data.id", "12345"))
                 .andExpect(status().isOk())
@@ -180,7 +182,7 @@ class HttpContractTest {
 
     @Test
     void listenerUsaElDataIdDelBodyCuandoNoVieneEnLaUrl() throws Exception {
-        when(pagoService.processPaymentWebhook(any(), eq("67890"))).thenReturn("Payment processed");
+        when(pagoService.processPaymentWebhook(any(), eq("67890"))).thenReturn(procesado());
 
         mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -192,22 +194,65 @@ class HttpContractTest {
     }
 
     @Test
-    void listenerLlamaAlServicioConNullSiNoHayDataId() throws Exception {
+    void listenerUsaElIdLegacyCuandoElTopicEsPayment() throws Exception {
+        when(pagoService.processLegacyPaymentNotification("184276812795")).thenReturn(procesado());
+
+        mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener")
+                        .param("id", "184276812795")
+                        .param("topic", "payment"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Payment processed"));
+
+        verify(pagoService).processLegacyPaymentNotification("184276812795");
+    }
+
+    @Test
+    void listenerIgnoraElTopicMerchantOrder() throws Exception {
+        mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener")
+                        .param("id", "45431143883")
+                        .param("topic", "merchant_order"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Notificación ignorada: topic merchant_order"));
+    }
+
+    @Test
+    void listenerDevuelve400SiNoHayDataIdNiIdLegacy() throws Exception {
         when(pagoService.processPaymentWebhook(any(), eq(null)))
-                .thenReturn("Falta el parámetro data.id en la URL");
+                .thenReturn(new ResultadoWebhookPago(EstadoWebhookPago.DATA_ID_FALTANTE,
+                        "Falta el parámetro data.id en la URL"));
 
         mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener"))
-                .andExpect(status().isOk())
+                .andExpect(status().isBadRequest())
                 .andExpect(content().string("Falta el parámetro data.id en la URL"));
     }
 
     @Test
+    void listenerDevuelve401CuandoLaFirmaEsInvalida() throws Exception {
+        when(pagoService.processPaymentWebhook(any(), eq("12345")))
+                .thenReturn(new ResultadoWebhookPago(EstadoWebhookPago.FIRMA_INVALIDA, "Firma inválida"));
+
+        mockMvc.perform(post("/api/tesoreria/mercadopago/payment/listener").param("data.id", "12345"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string("Firma inválida"));
+    }
+
+    @Test
     void updateDePagoDevuelve200SinBody() throws Exception {
+        when(pagoService.retrieveAndPublishPayment("12345")).thenReturn(true);
+
         mockMvc.perform(get("/api/tesoreria/mercadopago/payment/update/12345"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(""));
 
         verify(pagoService).retrieveAndPublishPayment("12345");
+    }
+
+    @Test
+    void updateDePagoDevuelve502SiNoSePuedeRecuperar() throws Exception {
+        when(pagoService.retrieveAndPublishPayment("12345")).thenReturn(false);
+
+        mockMvc.perform(get("/api/tesoreria/mercadopago/payment/update/12345"))
+                .andExpect(status().isBadGateway());
     }
 
     @Test
@@ -252,6 +297,10 @@ class HttpContractTest {
     void losEndpointsGetNoAceptanPost() throws Exception {
         mockMvc.perform(post("/api/tesoreria/mercadopago/checking/all/active"))
                 .andExpect(status().isMethodNotAllowed());
+    }
+
+    private ResultadoWebhookPago procesado() {
+        return new ResultadoWebhookPago(EstadoWebhookPago.PROCESADO, "Payment processed");
     }
 
     private ContextoMercadoPago contexto(Long id) {

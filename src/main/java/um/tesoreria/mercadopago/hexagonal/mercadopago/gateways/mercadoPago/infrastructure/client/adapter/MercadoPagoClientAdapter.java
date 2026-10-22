@@ -66,8 +66,12 @@ public class MercadoPagoClientAdapter implements MercadoPagoGateway {
         MercadoPagoConfig.setAccessToken(accessToken);
         try {
             return Optional.ofNullable(preferenciaMapper.toDomain(preferenceClient.get(preferenceId)));
-        } catch (MPException | MPApiException e) {
-            log.debug("Error al recuperar la preferencia: {}", e.getMessage());
+        } catch (MPApiException e) {
+            log.error("Error al recuperar la preferencia {}: status={}, response={}",
+                    preferenceId, e.getStatusCode(), contenido(e));
+            return Optional.empty();
+        } catch (MPException e) {
+            log.error("Error al recuperar la preferencia {}: {}", preferenceId, e.getMessage());
             return Optional.empty();
         }
     }
@@ -79,10 +83,22 @@ public class MercadoPagoClientAdapter implements MercadoPagoGateway {
                     .accessToken(accessToken)
                     .build();
             return Optional.ofNullable(pagoMapper.toDomain(paymentClient.get(paymentId, requestOptions)));
-        } catch (MPException | MPApiException e) {
+        } catch (MPApiException e) {
+            log.error("Error getting payment for {}: status={}, response={}",
+                    paymentId, e.getStatusCode(), contenido(e));
+            return Optional.empty();
+        } catch (MPException e) {
             log.error("Error getting payment for {}: {}", paymentId, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    private String contenido(MPApiException e) {
+        if (e.getApiResponse() == null || e.getApiResponse().getContent() == null) {
+            return "sin respuesta";
+        }
+        String contenido = e.getApiResponse().getContent();
+        return contenido.length() <= 1000 ? contenido : contenido.substring(0, 1000) + "...(truncado)";
     }
 
     private MercadoPagoException apiException(MPApiException e) {
