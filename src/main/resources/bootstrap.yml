@@ -12,6 +12,9 @@ app:
     lookback-dias: ${APP_RENOVACION_LOOKBACK_DIAS:3}
     page-size: ${APP_RENOVACION_PAGE_SIZE:200}
     max-fallidos-detalle: ${APP_RENOVACION_MAX_FALLIDOS:50}
+  checking:
+    legacy-scheduler:
+      enabled: ${APP_CHECKING_LEGACY_ENABLED:false}
   webhook:
     # Solo para entornos de prueba: con credenciales de testeo Mercado Pago firma con otro secret
     # y la validación nunca pasa. false = modo permisivo (procesa igual y deja traza informativa).

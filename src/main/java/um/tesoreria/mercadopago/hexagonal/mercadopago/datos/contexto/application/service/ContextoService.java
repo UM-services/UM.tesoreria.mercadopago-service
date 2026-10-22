@@ -47,6 +47,10 @@ public class ContextoService {
         return actualizarContextosUseCase.actualizar(contextos);
     }
 
+    /**
+     * @deprecated Barrido legado (90 días). Usar {@code findRenovaciones(...)}.
+     */
+    @Deprecated
     public List<Long> getActivosParaCambiar() {
         return getContextosActivosUseCase.getActivosParaCambiar();
     }
