@@ -9,7 +9,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JacksonJsonSerializer;
-import um.tesoreria.mercadopago.domain.event.PaymentProcessedEvent;
+import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mensajeria.infrastructure.kafka.event.PaymentProcessedEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,16 +21,26 @@ public class KafkaConfiguration {
     private String bootstrapServers;
 
     @Bean
+    public JacksonJsonSerializer<PaymentProcessedEvent> paymentSerializer() {
+        /*
+         * El contrato del topic es el JSON del evento. No escribimos __TypeId__: el
+         * consumidor usa el tipo target y asi el contrato no depende de nombres de clase.
+         */
+        JacksonJsonSerializer<PaymentProcessedEvent> serializer = new JacksonJsonSerializer<>();
+        serializer.setAddTypeInfo(false);
+        return serializer;
+    }
+
+    @Bean
     public ProducerFactory<String, PaymentProcessedEvent> paymentProducerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JacksonJsonSerializer.class);
-        // Configuraciones adicionales para robustez
         configProps.put(ProducerConfig.ACKS_CONFIG, "all");
         configProps.put(ProducerConfig.RETRIES_CONFIG, 3);
-        
-        return new DefaultKafkaProducerFactory<>(configProps);
+
+        return new DefaultKafkaProducerFactory<>(configProps, new StringSerializer(), paymentSerializer());
     }
 
     @Bean

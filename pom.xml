@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>um.tesoreria</groupId>
 	<artifactId>mercadopago-service</artifactId>
-	<version>0.10.1</version>
+	<version>0.12.0</version>
 	<name>UM.tesoreria.mercadopago-service</name>
 	<description>um.tesoreria.mercadopago-service</description>
 	<url/>
@@ -66,12 +66,12 @@
 		<dependency>
 			<groupId>com.mercadopago</groupId>
 			<artifactId>sdk-java</artifactId>
-			<version>3.2.1</version>
+			<version>3.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>3.0.3</version>
+			<version>3.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -120,7 +120,14 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.20.0</version>
+				<version>3.21.0</version>
+			</dependency>
+			<!-- sdk-java 3.7.0 declara gson 2.14.0; sin este pin el BOM de Spring Boot
+			     lo resuelve a 2.13.2 (version anterior a la que compila el SDK). -->
+			<dependency>
+				<groupId>com.google.code.gson</groupId>
+				<artifactId>gson</artifactId>
+				<version>2.14.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.iq80.snappy</groupId>
@@ -142,7 +149,7 @@
 			<dependency>
 				<groupId>org.codehaus.plexus</groupId>
 				<artifactId>plexus-utils</artifactId>
-				<version>4.0.3</version>
+				<version>4.1.0</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
