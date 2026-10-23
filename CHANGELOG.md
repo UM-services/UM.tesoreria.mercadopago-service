@@ -2,6 +2,14 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.12.1] - 2026-10-23
+
+### Changed
+- chore(deps): Spring Boot 4.1.1 → 4.1.2 y Spring Cloud 2025.1.3 → 2025.1.4 (`spring-cloud.version`) (fuente: `pom.xml`, `git diff HEAD`).
+- build(jacoco): `jacoco-maven-plugin` 0.8.13 → 0.8.15 (fuente: `pom.xml`, `git diff HEAD`).
+- fix(discovery): `spring.cloud.consul.discovery.query-passing: true` para que Feign/LoadBalancer resuelvan solo instancias con los checks en `passing`. El valor por defecto de la propiedad es `false` en `spring-cloud-consul-discovery` 5.0.4 (Spring Cloud 2025.1.4), por lo que se trata de un cambio de comportamiento en el descubrimiento (fuente: `bootstrap.yml`, metadatos de configuración de `spring-cloud-consul-discovery-5.0.4.jar`).
+- chore(config): se eliminan `spring.kafka.producer.key-serializer` y `value-serializer` de `bootstrap.yml` porque `KafkaConfiguration` ya define `StringSerializer` y `JacksonJsonSerializer` en su `ProducerFactory` propio (con `setAddTypeInfo(false)`), manteniendo el tópico `payment-processed`, la clave `paymentId`, `acks=all` y `retries=3`; el auto-configurado de Spring Boot no se usa al existir `ProducerFactory`/`KafkaTemplate` propios (fuente: `src/main/resources/bootstrap.yml`, `KafkaConfiguration.java`, `KafkaContractTest.java`, `git diff HEAD`).
+
 ## [0.12.0] - 2026-10-22
 
 ### Added
