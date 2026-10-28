@@ -4,7 +4,7 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 
 ## Versión del Proyecto
 
-- **Versión actual:** 0.12.1 _(fuente: pom.xml)_
+- **Versión actual:** 0.13.0 _(fuente: pom.xml)_
 
 ## Características Principales
 
@@ -20,6 +20,8 @@ Servicio de integración con MercadoPago para la gestión de pagos y preferencia
 - Renovación diaria (00:30 ART) de los enlaces de pago cuyo vencimiento cayó en las últimas 72 h
 - Tareas programadas para verificación automática diaria
 - Publicación del evento `payment-processed` en Kafka con payload JSON (sin header `__TypeId__`)
+- Declaración de los topics propios (`payment-processed`, `tesoreria-audit-evento`) al arrancar
+- Auditoría de requests, cambios de preferencias y ejecuciones de jobs hacia `tesoreria-auditoria` (cola en memoria + envío por lotes)
 
 ## Arquitectura
 
@@ -31,6 +33,8 @@ El código vive en un único slice `um.tesoreria.mercadopago.hexagonal.mercadopa
 - `shared`: modelo de dominio, DTOs, mappers y servicios comunes.
 
 Cada slice declara `domain/model`, `domain/ports/in`, `domain/ports/out`, `application/usecases` e `infrastructure`; la regla de dependencias (`domain` ← `application` ← `infrastructure` y `shared` sin depender de otras slices) se verifica en `ArquitecturaHexagonalTest`. Ver [diagrama de arquitectura hexagonal](docs/diagrams/arquitectura-hexagonal.mmd).
+
+Fuera del slice, el paquete `audit` implementa la captura y el envío de eventos de auditoría (`AuditRequestFilter`, `AuditQueue`, `AuditSender`, `AuditEventPublisher`) y `configuration` agrupa la configuración de Spring, Feign, Kafka y la declaración de topics (`KafkaTopicsConfiguration`).
 
 ## Requisitos
 
@@ -54,7 +58,50 @@ TESORERIA_CORE_SERVICE_URL=http://tesoreria-core-service:8080
 
 # Kafka (opcional)
 SPRING_KAFKA_BOOTSTRAP_SERVERS=localhost:9092
+
+# Topics propios (opcional; RF ambiental)
+APP_KAFKA_TOPIC_PARTITIONS=1
+APP_KAFKA_TOPIC_REPLICAS=1
 ```
+
+### Auditoría
+
+El paquete `audit` registra tres familias de eventos y las envía a `tesoreria-auditoria` por HTTP
+en lotes (`POST {TESORERIA_AUDIT_URL}/api/tesoreria/auditoria/evento/lote`, header `X-API-Key`):
+
+| Nivel | Entidad | Cuándo |
+| --- | --- | --- |
+| `CHANGE` | `MercadoPagoPreference` | Alta, actualización (sólo si cambió algún campo del snapshot) y fallo de preferencias de cuota o vacante |
+| `REQUEST` | `MercadoPagoNotification` | Toda notificación de pago recibida: webhook v1, IPN legacy y replay manual, incluso si se rechaza |
+| `REQUEST` | — | Ejecución de los jobs `checking-all-active` y `renovacion-vencimientos` (duración y resultado) |
+
+```properties
+TESORERIA_AUDIT_MODE=SEND                  # OFF | LOG | SEND
+TESORERIA_AUDIT_URL=http://localhost:8211
+TESORERIA_AUDIT_API_KEY=<api-key>
+TESORERIA_AUDIT_REQUEST_EVENTS=true
+TESORERIA_AUDIT_CHANGE_EVENTS=true
+TESORERIA_AUDIT_ACCESS_EVENTS=false         # auditar también GET
+TESORERIA_AUDIT_QUEUE_CAPACITY=5000
+TESORERIA_AUDIT_BATCH_SIZE=200
+TESORERIA_AUDIT_MAX_ATTEMPTS=10
+TESORERIA_AUDIT_SENDER_DELAY_MS=2000
+TESORERIA_AUDIT_SENDER_INITIAL_DELAY_MS=5000
+TESORERIA_AUDIT_INCLUDE_PREFIXES=/api/tesoreria/mercadopago
+TESORERIA_AUDIT_TOPIC=tesoreria-audit-evento
+TESORERIA_AUDIT_TOPIC_PARTITIONS=3
+```
+
+- `OFF`: no captura nada. `LOG`: captura y loguea sin enviar. `SEND` (default): encola y envía.
+- Sin `URL` o `API_KEY` el sender no envía y los eventos quedan en la cola.
+- No hay outbox: la cola es en memoria y acotada. Si se llena, los eventos se descartan y se
+  incrementa el contador `dropped`; si el proceso muere, se pierden los eventos en vuelo.
+- Los lotes con `400`, `401`, `403` o `422` se descartan; otros estados y los errores de red se
+  reintentan hasta `TESORERIA_AUDIT_MAX_ATTEMPTS`.
+- `tesoreria-audit-evento` lo declara este servicio (`KafkaTopicsConfiguration`) con 3 particiones,
+  retención de 7 días / 1 GiB por partición y `cleanup.policy=delete`.
+
+Detalle completo en [docs/auditoria-mercadopago.md](docs/auditoria-mercadopago.md).
 
 ## Uso
 
@@ -175,7 +222,7 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 [![Generate Documentation](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/UM-services/UM.tesoreria.mercadopago-service/actions/workflows/generate-docs.yml)
 
 [![Java](https://img.shields.io/badge/Java-25-red?logo=java)](https://www.java.com)
-[![Version](https://img.shields.io/badge/Version-0.12.1-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
+[![Version](https://img.shields.io/badge/Version-0.13.0-orange)](https://github.com/UM-services/UM.tesoreria.mercadopago-service)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.2-brightgreen?logo=spring)](https://spring.io/projects/spring-boot)
 [![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.1.4-blue?logo=spring)](https://spring.io/projects/spring-cloud)
 [![MercadoPago](https://img.shields.io/badge/MercadoPago%20SDK-3.7.0-lightblue?logo=mercadopago)](https://www.mercadopago.com.ar/developers/es)
@@ -201,6 +248,7 @@ La documentación del proyecto se genera automáticamente con cada push a la ram
 - [Documentación del Servicio](https://um-services.github.io/UM.tesoreria.mercadopago-service)
 - [Wiki del Proyecto](https://github.com/UM-services/UM.tesoreria.mercadopago-service/wiki)
 - [Persistencia de contextos de Mercado Pago](docs/persistencia-contexto-mercadopago.md)
+- [Auditoría de MercadoPago Service](docs/auditoria-mercadopago.md)
 - [Idempotencia end-to-end de `payment-processed`](docs/idempotencia-payment-processed.md)
 - [Documentación de MercadoPago](https://www.mercadopago.com.ar/developers/es/reference)
 

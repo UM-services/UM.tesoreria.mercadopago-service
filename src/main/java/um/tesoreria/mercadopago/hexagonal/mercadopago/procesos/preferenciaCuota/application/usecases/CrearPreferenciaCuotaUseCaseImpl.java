@@ -3,6 +3,8 @@ package um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
+import um.tesoreria.mercadopago.audit.PreferenceSnapshot;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.tipoChequeraTarjeta.application.service.TipoChequeraTarjetaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.exception.MercadoPagoException;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.service.MercadoPagoService;
@@ -21,6 +23,7 @@ public class CrearPreferenciaCuotaUseCaseImpl implements CrearPreferenciaCuotaUs
     private final TipoChequeraTarjetaService tipoChequeraTarjetaService;
     private final PreferenciaRequestBuilder preferenciaRequestBuilder;
     private final ActualizarPreferenciaCuotaUseCase actualizarPreferenciaCuotaUseCase;
+    private final AuditEventPublisher audit;
 
     @Override
     public ContextoMercadoPago crear(ContextoMercadoPago contexto, ChequeraCuota cuota) {
@@ -47,9 +50,11 @@ public class CrearPreferenciaCuotaUseCaseImpl implements CrearPreferenciaCuotaUs
             contexto.setInitPoint(preferencia.getInitPoint());
             contexto.setPreferenceId(preferencia.getId());
             contexto.setPreference(preferencia.getJson());
+            audit.publishPreferenceCreated(preferencia.getId(), PreferenceSnapshot.of(contexto));
         } catch (MercadoPagoException e) {
             log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}",
                     e.getStatusCode(), e.getMessage(), e.getApiResponse());
+            audit.publishPreferenceFailed("INSERT", contexto.getPreferenceId(), e.getMessage());
         }
 
         return contexto;

@@ -3,6 +3,8 @@ package um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaVacan
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
+import um.tesoreria.mercadopago.audit.PreferenceSnapshot;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.application.service.ContextoService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.exception.MercadoPagoException;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.service.MercadoPagoService;
@@ -19,6 +21,7 @@ public class CrearPreferenciaVacanteUseCaseImpl implements CrearPreferenciaVacan
     private final MercadoPagoService mercadoPagoService;
     private final ContextoService contextoService;
     private final PreferenciaRequestBuilder preferenciaRequestBuilder;
+    private final AuditEventPublisher audit;
 
     @Override
     public ContextoMercadoPago crear(ContextoMercadoPago contexto, ReservaVacante reserva) {
@@ -38,9 +41,11 @@ public class CrearPreferenciaVacanteUseCaseImpl implements CrearPreferenciaVacan
             contexto.setPreferenceId(preferencia.getId());
             contexto.setPreference(preferencia.getJson());
             contextoService.actualizar(contexto);
+            audit.publishPreferenceCreated(preferencia.getId(), PreferenceSnapshot.of(contexto));
         } catch (MercadoPagoException e) {
             log.error("MercadoPago API Error -> Status: {}, Message: {}, Response: {}",
                     e.getStatusCode(), e.getMessage(), e.getApiResponse());
+            audit.publishPreferenceFailed("INSERT", contexto.getPreferenceId(), e.getMessage());
         }
 
         return contexto;
