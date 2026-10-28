@@ -11,5 +11,10 @@ flowchart TD
         MP_API["API de Mercado Pago"]
     end
 
+    subgraph AuditPlatform["Servicio de Auditoría"]
+        AUDIT["tesoreria-auditoria"]
+    end
+
     APP -->|"HTTPS/REST"| MP_API
     APP -->|"Feign Client / HTTP"| CORE
+    APP -->|"HTTP / lotes con X-API-Key"| AUDIT

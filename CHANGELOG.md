@@ -2,6 +2,27 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.13.0] - 2026-10-28
+
+### Added
+- feat(audit): Nuevo paquete `um.tesoreria.mercadopago.audit` con `AuditRequestFilter` (`OncePerRequestFilter` en `Ordered.HIGHEST_PRECEDENCE + 10`), `AuditContext` (`ThreadLocal` con `correlationId`, actor, IP, método y endpoint), `AuditEventPublisher`, `AuditEventPayload`, `AuditProperties`, `AuditQueue` (`ArrayBlockingQueue` acotada con contador `dropped`), `AuditSender` (lotes por `RestClient`) y `PreferenceSnapshot` (fuente: `src/main/java/um/tesoreria/mercadopago/audit/**`).
+- feat(audit): Eventos `CHANGE` sobre la entidad `MercadoPagoPreference`: `INSERT` al crear la preferencia, `UPDATE` con `changedFields`, `beforeData` y `afterData` sólo si el diff de `PreferenceSnapshot` no está vacío, y `ERROR` ante fallo o preferencia inexistente. Instrumentado en `CrearPreferenciaCuotaUseCaseImpl`, `ActualizarPreferenciaCuotaUseCaseImpl` y `CrearPreferenciaVacanteUseCaseImpl` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/preferencia*/**`, `PreferenceSnapshot.java`).
+- feat(audit): Eventos `REQUEST/ACCESS` sobre `MercadoPagoNotification` para **todas** las notificaciones de pago, incluidas las rechazadas: webhook v1 (`WEBHOOK_V1`), IPN legacy (`IPN_LEGACY`) y replay manual (`MANUAL`), con estado, `paymentId`, presencia de `x-signature`/`x-request-id` y mensaje. Las excepciones del replay manual se auditan como `ERROR` y se propagan (fuente: `PagoService.java`, `PagoServiceTest.java`).
+- feat(audit): Eventos `REQUEST/ACCESS` de los jobs programados `checking-all-active` y `renovacion-vencimientos` con `durationMs` y `outcome` `OK`/`ERROR`; en `checking-all-active` la excepción se audita y se vuelve a lanzar (fuente: `CheckingScheduled.java`, `RenovacionScheduled.java`).
+- feat(kafka): Nueva `KafkaTopicsConfiguration` que declara los topics propios: `payment-processed` (`app.kafka.topics.partitions|replicas`) y `tesoreria-audit-evento` (3 particiones por defecto, `retention.ms` 7 días, `retention.bytes` 1 GiB por partición, `cleanup.policy=delete`, `min.insync.replicas` acotado a 2 según el RF) (fuente: `KafkaTopicsConfiguration.java`, `KafkaTopicsConfigurationTest.java`, `bootstrap.yml`).
+- feat(config): Nuevas propiedades `tesoreria.audit.*` (modo `OFF|LOG|SEND`, eventos de request/change/access, URL y API key del servicio, tamaño de cola y de lote, intentos, delays del sender, prefijos incluidos y topic/particiones de auditoría) y `app.kafka.topics.*`, todas con override por entorno `TESORERIA_AUDIT_*` / `APP_KAFKA_TOPIC_*` (fuente: `bootstrap.yml`, `AuditProperties.java`).
+- test(audit): Nuevos `AuditQueueTest`, `AuditRequestFilterTest`, `KafkaTopicsConfigurationTest` y `PagoServiceTest`; `PreferenciaCuotaUseCasesTest` y `CrearPreferenciaVacanteUseCaseImplTest` verifican los eventos de creación, actualización y fallo (fuente: `src/test/java/um/tesoreria/mercadopago/**`).
+- docs: Nueva guía `docs/auditoria-mercadopago.md` y diagrama `docs/diagrams/flujo-auditoria.mmd`, registrado en `generate-docs.yml` con el mismo escapado previo a `innerHTML` que el resto de los diagramas; `despliegue.mmd` suma el servicio `tesoreria-auditoria` como destino de los lotes (fuente: `docs/auditoria-mercadopago.md`, `docs/diagrams/flujo-auditoria.mmd`, `docs/diagrams/despliegue.mmd`, `.github/workflows/generate-docs.yml`).
+
+### Changed
+- chore(config): `src/test/resources/bootstrap.yml` fija `tesoreria.audit.mode: OFF` para que los tests no encolen ni logueen intentos de envío (fuente: `src/test/resources/bootstrap.yml`).
+- chore(config): `app.kafka.topics.partitions` y `app.kafka.topics.replicas` quedan en `1` por defecto (`APP_KAFKA_TOPIC_PARTITIONS`, `APP_KAFKA_TOPIC_REPLICAS`); el factor de replicación es ambiental y no se reaplica sobre un topic existente (fuente: `bootstrap.yml`, `KafkaTopicsConfiguration.java`).
+
+### Notes
+- La auditoría no garantiza entrega: no hay outbox transaccional, los eventos viven en una cola en memoria de 5.000 por defecto y, si se llena, se descartan y se incrementa el contador `dropped` (fuente: `AuditQueue.java`, `AuditProperties.java`).
+- `AuditSender` envía a `POST {url}/api/tesoreria/auditoria/evento/lote` con header `X-API-Key`; descarta el lote ante `400`, `401`, `403` o `422`, reintenta otros estados y errores de red hasta `max-attempts` (10 por defecto) y, si `url` o `api-key` están vacías, deja los eventos en la cola (fuente: `AuditSender.java`).
+- Por defecto no se auditan las lecturas (`access-events: false`); sólo se capturan paths que empiezan con `/api/tesoreria/mercadopago` y se excluyen los que contienen `/actuator` o `/error` (fuente: `AuditRequestFilter.java`, `AuditProperties.java`).
+
 ## [0.12.1] - 2026-10-23
 
 ### Changed

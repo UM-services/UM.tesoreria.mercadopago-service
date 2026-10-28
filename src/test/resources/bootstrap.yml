@@ -13,3 +13,8 @@ spring:
       enabled: false
   kafka:
     bootstrap-servers: localhost:9092
+
+tesoreria:
+  audit:
+    # Sin servicio de auditoría en tests: no encolar ni loguear intentos de envío.
+    mode: OFF

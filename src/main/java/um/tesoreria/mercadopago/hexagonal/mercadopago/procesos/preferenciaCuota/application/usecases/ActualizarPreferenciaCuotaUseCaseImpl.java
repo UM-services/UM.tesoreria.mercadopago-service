@@ -3,6 +3,8 @@ package um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.preferenciaCuota
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
+import um.tesoreria.mercadopago.audit.PreferenceSnapshot;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.chequeraCuota.application.service.ChequeraCuotaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.tipoChequeraTarjeta.application.service.TipoChequeraTarjetaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.exception.MercadoPagoException;
@@ -24,6 +26,7 @@ public class ActualizarPreferenciaCuotaUseCaseImpl implements ActualizarPreferen
     private final ChequeraCuotaService chequeraCuotaService;
     private final TipoChequeraTarjetaService tipoChequeraTarjetaService;
     private final PreferenciaRequestBuilder preferenciaRequestBuilder;
+    private final AuditEventPublisher audit;
 
     @Override
     public ContextoMercadoPago actualizar(ContextoMercadoPago contexto) {
@@ -34,8 +37,12 @@ public class ActualizarPreferenciaCuotaUseCaseImpl implements ActualizarPreferen
     public ContextoMercadoPago actualizar(ContextoMercadoPago contexto, ChequeraCuota cuotaExistente) {
         log.debug("\n\nProcessing ActualizarPreferenciaCuotaUseCaseImpl.actualizar\n\n");
 
+        var antes = PreferenceSnapshot.of(contexto);
+
         var preferencia = mercadoPagoService.recuperar(contexto.getPreferenceId()).orElse(null);
         if (preferencia == null) {
+            audit.publishPreferenceFailed("UPDATE", contexto.getPreferenceId(),
+                    "preferencia no encontrada en Mercado Pago");
             return null;
         }
 
@@ -53,8 +60,13 @@ public class ActualizarPreferenciaCuotaUseCaseImpl implements ActualizarPreferen
                 contexto.setPreference(actualizada.getJson());
             }
             contexto.setLastVencimientoUpdated(OffsetDateTime.now(ZoneOffset.UTC));
+
+            var despues = PreferenceSnapshot.of(contexto);
+            audit.publishPreferenceUpdated(contexto.getPreferenceId(),
+                    PreferenceSnapshot.diff(antes, despues), antes, despues);
         } catch (MercadoPagoException e) {
             log.debug("\n\nError al actualizar la preferencia: {}\n\n", e.getMessage());
+            audit.publishPreferenceFailed("UPDATE", contexto.getPreferenceId(), e.getMessage());
         }
 
         return contexto;
