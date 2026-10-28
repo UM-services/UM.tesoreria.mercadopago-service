@@ -2,6 +2,20 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.13.1] - 2026-10-28
+
+### Fixed
+- fix(kafka): La dependencia `spring-kafka` se reemplaza por `spring-boot-starter-kafka`. En Spring Boot 4 la auto-configuración de Kafka vive en el módulo `spring-boot-kafka` (paquete `org.springframework.boot.kafka.autoconfigure`); sin ese módulo no hay bean `KafkaAdmin` y los `NewTopic` de `KafkaTopicsConfiguration` no se aplicaban, por lo que `tesoreria-audit-evento` no quedaba con las 3 particiones declaradas. Nuevo `KafkaAutoconfiguracionTest` verifica que `KafkaAutoConfiguration` y `KafkaProperties` estén en el classpath (fuente: `pom.xml`, `KafkaAutoconfiguracionTest.java`, `spring-boot-kafka` de Boot 4.1.2).
+- fix(config): `spring.kafka.bootstrap-servers` pasa a `${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}`; la variable ya estaba documentada en el README pero no estaba cableada, así que sólo se usaba el valor fijo `kafka:9092` (fuente: `src/main/resources/bootstrap.yml`, `README.md`).
+- fix(kafka): `paymentProducerFactory` deja de declarar `key.serializer` y `value.serializer` en el mapa de propiedades porque las instancias (`StringSerializer` y `JacksonJsonSerializer` con `addTypeInfo=false`) ya se pasan al constructor de `DefaultKafkaProducerFactory`; `KafkaContractTest` ahora verifica que `VALUE_SERIALIZER_CLASS_CONFIG` no esté en las props y que el serializer no agregue `__TypeId__` (fuente: `KafkaConfiguration.java`, `KafkaContractTest.java`).
+
+### Changed
+- chore(config): `spring.kafka.admin.fail-fast: true` y `spring.kafka.admin.modify-topic-configs: true` en `bootstrap.yml`. La declaración de topics falla el arranque si el broker no responde, y `modify-topic-configs` aplica las configuraciones declaradas sobre topics existentes (retención, `cleanup.policy`, `min.insync.replicas`); las particiones se incrementan sólo si el topic existente tiene menos de las declaradas y el replication factor nunca se reasigna (fuente: `bootstrap.yml`, `KafkaTopicsConfiguration.java`, `docs/auditoria-mercadopago.md`).
+- test(config): `src/test/resources/bootstrap.yml` fija `spring.kafka.admin.fail-fast: false` y `MercadoPagoApplicationTests` excluye `KafkaAutoConfiguration`, para que la suite corra sin broker (fuente: `src/test/resources/bootstrap.yml`, `MercadoPagoApplicationTests.java`).
+
+### Notes
+- Con `spring.kafka.admin.fail-fast: true` el servicio requiere un broker Kafka accesible al arrancar; en local hay que levantar Kafka o desactivar esa propiedad (fuente: `bootstrap.yml`, `KafkaProperties.Admin`).
+
 ## [0.13.0] - 2026-10-28
 
 ### Added

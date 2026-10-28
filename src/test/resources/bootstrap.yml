@@ -13,6 +13,8 @@ spring:
       enabled: false
   kafka:
     bootstrap-servers: localhost:9092
+    admin:
+      fail-fast: false
 
 tesoreria:
   audit:
