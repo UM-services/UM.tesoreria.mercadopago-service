@@ -128,6 +128,13 @@ El RF es ambiental y nunca se reasigna sobre un topic existente. El envío de ev
 desde este servicio es por HTTP; la declaración del topic fija la topología que necesita el
 consumidor.
 
+La declaración depende de la auto-configuración de Kafka de Spring Boot 4, que llega con
+`spring-boot-starter-kafka` (módulo `spring-boot-kafka`, paquete
+`org.springframework.boot.kafka.autoconfigure`). Sin ese módulo no hay bean `KafkaAdmin` y los
+`NewTopic` no se aplican. `spring.kafka.admin.fail-fast: true` hace fallar el arranque si el broker
+no responde, y `spring.kafka.admin.modify-topic-configs: true` ajusta las configuraciones
+declaradas sobre topics existentes (el RF nunca se reasigna).
+
 ## Limitaciones
 
 - Sin outbox: no hay garantía de entrega entre el `offer` y el `POST` exitoso.
@@ -142,6 +149,8 @@ consumidor.
 - `AuditRequestFilterTest`: emisión en `POST` dentro del prefijo, exclusión de `GET` fuera de
   `access-events`, paths no incluidos, modo `OFF` y `outcome=ERROR` con status 500.
 - `KafkaTopicsConfigurationTest`: particiones, retención y `min.insync.replicas`.
+- `KafkaAutoconfiguracionTest`: el módulo `spring-boot-kafka` está en el classpath, por lo que
+  existen la auto-configuración de Kafka y el bean `KafkaAdmin` que aplica los `NewTopic`.
 - `PagoServiceTest`: webhook procesado, firma inválida, legacy ignorada, replay manual exitoso,
   no encontrado y excepción.
 - `PreferenciaCuotaUseCasesTest` y `CrearPreferenciaVacanteUseCaseImplTest`: eventos de creación,
@@ -153,4 +162,6 @@ consumidor.
 - `src/main/java/um/tesoreria/mercadopago/configuration/KafkaTopicsConfiguration.java`
 - `src/main/resources/bootstrap.yml`
 - `src/test/resources/bootstrap.yml`
+- `src/test/java/um/tesoreria/mercadopago/configuration/KafkaAutoconfiguracionTest.java`
+- `pom.xml`
 - `git diff HEAD`

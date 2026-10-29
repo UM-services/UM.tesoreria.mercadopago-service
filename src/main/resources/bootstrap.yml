@@ -54,7 +54,10 @@ spring:
         health-check-critical-timeout: 5m
         tags: tesoreria,mercadopago
   kafka:
-    bootstrap-servers: kafka:9092
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    admin:
+      fail-fast: true
+      modify-topic-configs: true
 
 logging:
   level:
