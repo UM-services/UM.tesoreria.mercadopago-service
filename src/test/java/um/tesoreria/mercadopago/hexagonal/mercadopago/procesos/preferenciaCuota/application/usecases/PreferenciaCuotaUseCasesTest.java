@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.chequeraCuota.application.service.ChequeraCuotaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.tipoChequeraTarjeta.application.service.TipoChequeraTarjetaService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.exception.MercadoPagoException;
@@ -26,6 +27,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -48,6 +50,8 @@ class PreferenciaCuotaUseCasesTest {
     private PreferenciaRequestBuilder preferenciaRequestBuilder;
     @Mock
     private ActualizarPreferenciaCuotaUseCase actualizarPreferenciaCuotaUseCase;
+    @Mock
+    private AuditEventPublisher audit;
 
     private CrearPreferenciaCuotaUseCaseImpl crearUseCase;
     private ActualizarPreferenciaCuotaUseCaseImpl actualizarUseCase;
@@ -56,9 +60,9 @@ class PreferenciaCuotaUseCasesTest {
     @BeforeEach
     void setUp() {
         crearUseCase = new CrearPreferenciaCuotaUseCaseImpl(mercadoPagoService,
-                tipoChequeraTarjetaService, preferenciaRequestBuilder, actualizarPreferenciaCuotaUseCase);
+                tipoChequeraTarjetaService, preferenciaRequestBuilder, actualizarPreferenciaCuotaUseCase, audit);
         actualizarUseCase = new ActualizarPreferenciaCuotaUseCaseImpl(mercadoPagoService, chequeraCuotaService,
-                tipoChequeraTarjetaService, preferenciaRequestBuilder);
+                tipoChequeraTarjetaService, preferenciaRequestBuilder, audit);
         recuperarUseCase = new RecuperarPreferenciaCuotaUseCaseImpl(mercadoPagoService);
     }
 
@@ -98,6 +102,7 @@ class PreferenciaCuotaUseCasesTest {
         assertThat(result.getInitPoint()).isEqualTo("https://mp/init");
         assertThat(result.getPreferenceId()).isEqualTo("pref-1");
         assertThat(result.getPreference()).isEqualTo("{\"id\":\"pref-1\"}");
+        verify(audit).publishPreferenceCreated(eq("pref-1"), any());
     }
 
     @Test
@@ -114,6 +119,7 @@ class PreferenciaCuotaUseCasesTest {
 
         assertThat(result.getInitPoint()).isNull();
         assertThat(result.getPreferenceId()).isNull();
+        verify(audit).publishPreferenceFailed("INSERT", null, "boom");
     }
 
     @Test
@@ -130,6 +136,7 @@ class PreferenciaCuotaUseCasesTest {
 
         assertThat(actualizarUseCase.actualizar(contexto)).isNull();
         verifyNoInteractions(chequeraCuotaService);
+        verify(audit).publishPreferenceFailed("UPDATE", "pref-1", "preferencia no encontrada en Mercado Pago");
     }
 
     @Test
@@ -151,6 +158,9 @@ class PreferenciaCuotaUseCasesTest {
         assertThat(result.getChanged()).isZero();
         assertThat(result.getPreference()).isEqualTo("{\"id\":\"pref-1\"}");
         assertThat(result.getLastVencimientoUpdated()).isNotNull();
+        verify(audit).publishPreferenceUpdated(eq("pref-1"),
+                argThat(fields -> fields.contains("changed") && fields.contains("lastVencimientoUpdated")),
+                any(), any());
     }
 
     @Test
@@ -171,6 +181,7 @@ class PreferenciaCuotaUseCasesTest {
 
         assertThat(result.getChanged()).isEqualTo((byte) 1);
         assertThat(result.getLastVencimientoUpdated()).isNull();
+        verify(audit).publishPreferenceFailed("UPDATE", "pref-1", "boom");
     }
 
     @Test

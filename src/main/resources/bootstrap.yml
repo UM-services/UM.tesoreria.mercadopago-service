@@ -22,6 +22,12 @@ app:
     # Fallback IPN legacy (?id=<paymentId>&topic=payment). Apagado por defecto: habilitarlo sólo en
     # entornos controlados y con los consumidores idempotentes ya desplegados.
     legacy-ipn-enabled: ${APP_WEBHOOK_LEGACY_IPN_ENABLED:false}
+  # Topics de los que este servicio es dueño (KafkaTopicsConfiguration): payment-processed y el
+  # topic de auditoría. RF ambiental; nunca se reasigna en un topic existente.
+  kafka:
+    topics:
+      replicas: ${APP_KAFKA_TOPIC_REPLICAS:1}
+      partitions: ${APP_KAFKA_TOPIC_PARTITIONS:1}
   consul:
     host: consul-service
     port: 8500
@@ -41,15 +47,17 @@ spring:
       port: ${app.consul.port}
       discovery:
         prefer-ip-address: true
+        # Solo resolver instancias con los checks en passing (Feign/LoadBalancer).
+        query-passing: true
         # Consul: readiness (sin dependencias) + poda si queda critico.
         health-check-path: /actuator/health/readiness
         health-check-critical-timeout: 5m
         tags: tesoreria,mercadopago
   kafka:
-    bootstrap-servers: kafka:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
+    admin:
+      fail-fast: true
+      modify-topic-configs: true
 
 logging:
   level:
@@ -57,6 +65,27 @@ logging:
     web: ${app.logging}
     org:
       springframework.cloud.config: ${app.logging}
+
+tesoreria:
+  audit:
+    # OFF = no captura | LOG = captura y loguea | SEND = cola en memoria + HTTP
+    # Default SEND: la auditoría se registra desde el primer request.
+    mode: ${TESORERIA_AUDIT_MODE:SEND}
+    request-events: ${TESORERIA_AUDIT_REQUEST_EVENTS:true}
+    access-events: ${TESORERIA_AUDIT_ACCESS_EVENTS:false}
+    url: ${TESORERIA_AUDIT_URL:http://localhost:8211}
+    api-key: ${TESORERIA_AUDIT_API_KEY:}
+    queue-capacity: ${TESORERIA_AUDIT_QUEUE_CAPACITY:5000}
+    batch-size: ${TESORERIA_AUDIT_BATCH_SIZE:200}
+    max-attempts: ${TESORERIA_AUDIT_MAX_ATTEMPTS:10}
+    sender-delay-ms: ${TESORERIA_AUDIT_SENDER_DELAY_MS:2000}
+    sender-initial-delay-ms: ${TESORERIA_AUDIT_SENDER_INITIAL_DELAY_MS:5000}
+    change-events: ${TESORERIA_AUDIT_CHANGE_EVENTS:true}
+    include-prefixes: ${TESORERIA_AUDIT_INCLUDE_PREFIXES:/api/tesoreria/mercadopago}
+    # Topic de auditoría: este servicio es el dueño (lo declara KafkaTopicsConfiguration) y fija
+    # las 3 particiones que necesita tesoreria-auditoria (concurrency=3).
+    kafka-topic: ${TESORERIA_AUDIT_TOPIC:tesoreria-audit-evento}
+    kafka-topic-partitions: ${TESORERIA_AUDIT_TOPIC_PARTITIONS:3}
 
 management:
   endpoints:

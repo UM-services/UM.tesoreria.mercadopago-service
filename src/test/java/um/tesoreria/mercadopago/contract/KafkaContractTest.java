@@ -102,8 +102,12 @@ class KafkaContractTest {
         assertThat(factory.getConfigurationProperties())
                 .containsEntry(ProducerConfig.ACKS_CONFIG, "all")
                 .containsEntry(ProducerConfig.RETRIES_CONFIG, 3)
-                .containsEntry(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                        org.springframework.kafka.support.serializer.JacksonJsonSerializer.class);
+                // La clase de serializer no va en las props: se pasa la instancia al factory.
+                .doesNotContainKey(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG);
+
+        var serializer = (org.springframework.kafka.support.serializer.JacksonJsonSerializer<?>)
+                factory.getValueSerializerSupplier().get();
+        assertThat(serializer.isAddTypeInfo()).isFalse();
     }
 
     private PagoProcesadoEvento evento() {

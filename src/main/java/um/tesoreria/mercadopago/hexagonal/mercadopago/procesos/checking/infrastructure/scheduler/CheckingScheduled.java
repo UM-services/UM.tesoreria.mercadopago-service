@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.checking.application.service.CheckingService;
 
 /**
@@ -21,10 +22,20 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.checking.applicat
 public class CheckingScheduled {
 
     private final CheckingService checkingService;
+    private final AuditEventPublisher audit;
 
     @Scheduled(cron = "0 0 4 * * *")
     public void checkingAllActive() {
-        checkingService.checkingAllActive();
+        long started = System.currentTimeMillis();
+        try {
+            checkingService.checkingAllActive();
+            audit.publishScheduled("checking-all-active", "OK",
+                    System.currentTimeMillis() - started, null);
+        } catch (RuntimeException e) {
+            audit.publishScheduled("checking-all-active", "ERROR",
+                    System.currentTimeMillis() - started, e);
+            throw e;
+        }
     }
 
 }

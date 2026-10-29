@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.datos.contexto.application.service.ContextoService;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.exception.MercadoPagoException;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.gateways.mercadoPago.application.service.MercadoPagoService;
@@ -21,6 +22,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -36,12 +38,15 @@ class CrearPreferenciaVacanteUseCaseImplTest {
     private ContextoService contextoService;
     @Mock
     private PreferenciaRequestBuilder preferenciaRequestBuilder;
+    @Mock
+    private AuditEventPublisher audit;
 
     private CrearPreferenciaVacanteUseCaseImpl useCase;
 
     @BeforeEach
     void setUp() {
-        useCase = new CrearPreferenciaVacanteUseCaseImpl(mercadoPagoService, contextoService, preferenciaRequestBuilder);
+        useCase = new CrearPreferenciaVacanteUseCaseImpl(mercadoPagoService, contextoService,
+                preferenciaRequestBuilder, audit);
     }
 
     @Test
@@ -66,6 +71,7 @@ class CrearPreferenciaVacanteUseCaseImplTest {
         assertThat(result.getInitPoint()).isEqualTo("https://mp/init");
         assertThat(result.getPreferenceId()).isEqualTo("pref-1");
         verify(contextoService).actualizar(contexto);
+        verify(audit).publishPreferenceCreated(eq("pref-1"), any());
     }
 
     @Test
@@ -79,6 +85,7 @@ class CrearPreferenciaVacanteUseCaseImplTest {
 
         assertThat(useCase.crear(contexto, reserva).getInitPoint()).isNull();
         verify(contextoService, never()).actualizar(any());
+        verify(audit).publishPreferenceFailed("INSERT", null, "boom");
     }
 
     @Test

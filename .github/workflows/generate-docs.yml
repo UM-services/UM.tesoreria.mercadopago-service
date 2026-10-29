@@ -80,6 +80,7 @@ jobs:
               <div id="erd-diagram" class="section"></div>
               <div id="vacante-sequence-diagram" class="section"></div>
               <div id="chequera-bulk-sequence-diagram" class="section"></div>
+              <div id="audit-sequence-diagram" class="section"></div>
               <div id="deployment-diagram" class="section"></div>
               <div id="dependencies" class="section">
                   <h2>🌳 Grafo de Dependencias</h2>
@@ -187,6 +188,15 @@ jobs:
                       const chequeraBulkContainer = document.getElementById('chequera-bulk-sequence-diagram');
                       chequeraBulkContainer.innerHTML = '<h2>🔄 Diagrama de Secuencia: Creación de Preferencias de Chequera (Bulk)</h2><div class="mermaid">' + escapeHtml(data) + '</div>';
                       mermaid.init(undefined, chequeraBulkContainer.querySelector('.mermaid'));
+                  });
+
+              // --- Audit Sequence Diagram ---
+              fetch('diagrams/flujo-auditoria.mmd')
+                  .then(response => response.text())
+                  .then(data => {
+                      const auditContainer = document.getElementById('audit-sequence-diagram');
+                      auditContainer.innerHTML = '<h2>🔐 Diagrama de Secuencia: Auditoría de Requests y Eventos</h2><div class="mermaid">' + escapeHtml(data) + '</div>';
+                      mermaid.init(undefined, auditContainer.querySelector('.mermaid'));
                   });
 
               // --- Deployment Diagram ---

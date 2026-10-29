@@ -2,6 +2,49 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.13.1] - 2026-10-28
+
+### Fixed
+- fix(kafka): La dependencia `spring-kafka` se reemplaza por `spring-boot-starter-kafka`. En Spring Boot 4 la auto-configuración de Kafka vive en el módulo `spring-boot-kafka` (paquete `org.springframework.boot.kafka.autoconfigure`); sin ese módulo no hay bean `KafkaAdmin` y los `NewTopic` de `KafkaTopicsConfiguration` no se aplicaban, por lo que `tesoreria-audit-evento` no quedaba con las 3 particiones declaradas. Nuevo `KafkaAutoconfiguracionTest` verifica que `KafkaAutoConfiguration` y `KafkaProperties` estén en el classpath (fuente: `pom.xml`, `KafkaAutoconfiguracionTest.java`, `spring-boot-kafka` de Boot 4.1.2).
+- fix(config): `spring.kafka.bootstrap-servers` pasa a `${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}`; la variable ya estaba documentada en el README pero no estaba cableada, así que sólo se usaba el valor fijo `kafka:9092` (fuente: `src/main/resources/bootstrap.yml`, `README.md`).
+- fix(kafka): `paymentProducerFactory` deja de declarar `key.serializer` y `value.serializer` en el mapa de propiedades porque las instancias (`StringSerializer` y `JacksonJsonSerializer` con `addTypeInfo=false`) ya se pasan al constructor de `DefaultKafkaProducerFactory`; `KafkaContractTest` ahora verifica que `VALUE_SERIALIZER_CLASS_CONFIG` no esté en las props y que el serializer no agregue `__TypeId__` (fuente: `KafkaConfiguration.java`, `KafkaContractTest.java`).
+
+### Changed
+- chore(config): `spring.kafka.admin.fail-fast: true` y `spring.kafka.admin.modify-topic-configs: true` en `bootstrap.yml`. La declaración de topics falla el arranque si el broker no responde, y `modify-topic-configs` aplica las configuraciones declaradas sobre topics existentes (retención, `cleanup.policy`, `min.insync.replicas`); las particiones se incrementan sólo si el topic existente tiene menos de las declaradas y el replication factor nunca se reasigna (fuente: `bootstrap.yml`, `KafkaTopicsConfiguration.java`, `docs/auditoria-mercadopago.md`).
+- test(config): `src/test/resources/bootstrap.yml` fija `spring.kafka.admin.fail-fast: false` y `MercadoPagoApplicationTests` excluye `KafkaAutoConfiguration`, para que la suite corra sin broker (fuente: `src/test/resources/bootstrap.yml`, `MercadoPagoApplicationTests.java`).
+
+### Notes
+- Con `spring.kafka.admin.fail-fast: true` el servicio requiere un broker Kafka accesible al arrancar; en local hay que levantar Kafka o desactivar esa propiedad (fuente: `bootstrap.yml`, `KafkaProperties.Admin`).
+
+## [0.13.0] - 2026-10-28
+
+### Added
+- feat(audit): Nuevo paquete `um.tesoreria.mercadopago.audit` con `AuditRequestFilter` (`OncePerRequestFilter` en `Ordered.HIGHEST_PRECEDENCE + 10`), `AuditContext` (`ThreadLocal` con `correlationId`, actor, IP, método y endpoint), `AuditEventPublisher`, `AuditEventPayload`, `AuditProperties`, `AuditQueue` (`ArrayBlockingQueue` acotada con contador `dropped`), `AuditSender` (lotes por `RestClient`) y `PreferenceSnapshot` (fuente: `src/main/java/um/tesoreria/mercadopago/audit/**`).
+- feat(audit): Eventos `CHANGE` sobre la entidad `MercadoPagoPreference`: `INSERT` al crear la preferencia, `UPDATE` con `changedFields`, `beforeData` y `afterData` sólo si el diff de `PreferenceSnapshot` no está vacío, y `ERROR` ante fallo o preferencia inexistente. Instrumentado en `CrearPreferenciaCuotaUseCaseImpl`, `ActualizarPreferenciaCuotaUseCaseImpl` y `CrearPreferenciaVacanteUseCaseImpl` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/preferencia*/**`, `PreferenceSnapshot.java`).
+- feat(audit): Eventos `REQUEST/ACCESS` sobre `MercadoPagoNotification` para **todas** las notificaciones de pago, incluidas las rechazadas: webhook v1 (`WEBHOOK_V1`), IPN legacy (`IPN_LEGACY`) y replay manual (`MANUAL`), con estado, `paymentId`, presencia de `x-signature`/`x-request-id` y mensaje. Las excepciones del replay manual se auditan como `ERROR` y se propagan (fuente: `PagoService.java`, `PagoServiceTest.java`).
+- feat(audit): Eventos `REQUEST/ACCESS` de los jobs programados `checking-all-active` y `renovacion-vencimientos` con `durationMs` y `outcome` `OK`/`ERROR`; en `checking-all-active` la excepción se audita y se vuelve a lanzar (fuente: `CheckingScheduled.java`, `RenovacionScheduled.java`).
+- feat(kafka): Nueva `KafkaTopicsConfiguration` que declara los topics propios: `payment-processed` (`app.kafka.topics.partitions|replicas`) y `tesoreria-audit-evento` (3 particiones por defecto, `retention.ms` 7 días, `retention.bytes` 1 GiB por partición, `cleanup.policy=delete`, `min.insync.replicas` acotado a 2 según el RF) (fuente: `KafkaTopicsConfiguration.java`, `KafkaTopicsConfigurationTest.java`, `bootstrap.yml`).
+- feat(config): Nuevas propiedades `tesoreria.audit.*` (modo `OFF|LOG|SEND`, eventos de request/change/access, URL y API key del servicio, tamaño de cola y de lote, intentos, delays del sender, prefijos incluidos y topic/particiones de auditoría) y `app.kafka.topics.*`, todas con override por entorno `TESORERIA_AUDIT_*` / `APP_KAFKA_TOPIC_*` (fuente: `bootstrap.yml`, `AuditProperties.java`).
+- test(audit): Nuevos `AuditQueueTest`, `AuditRequestFilterTest`, `KafkaTopicsConfigurationTest` y `PagoServiceTest`; `PreferenciaCuotaUseCasesTest` y `CrearPreferenciaVacanteUseCaseImplTest` verifican los eventos de creación, actualización y fallo (fuente: `src/test/java/um/tesoreria/mercadopago/**`).
+- docs: Nueva guía `docs/auditoria-mercadopago.md` y diagrama `docs/diagrams/flujo-auditoria.mmd`, registrado en `generate-docs.yml` con el mismo escapado previo a `innerHTML` que el resto de los diagramas; `despliegue.mmd` suma el servicio `tesoreria-auditoria` como destino de los lotes (fuente: `docs/auditoria-mercadopago.md`, `docs/diagrams/flujo-auditoria.mmd`, `docs/diagrams/despliegue.mmd`, `.github/workflows/generate-docs.yml`).
+
+### Changed
+- chore(config): `src/test/resources/bootstrap.yml` fija `tesoreria.audit.mode: OFF` para que los tests no encolen ni logueen intentos de envío (fuente: `src/test/resources/bootstrap.yml`).
+- chore(config): `app.kafka.topics.partitions` y `app.kafka.topics.replicas` quedan en `1` por defecto (`APP_KAFKA_TOPIC_PARTITIONS`, `APP_KAFKA_TOPIC_REPLICAS`); el factor de replicación es ambiental y no se reaplica sobre un topic existente (fuente: `bootstrap.yml`, `KafkaTopicsConfiguration.java`).
+
+### Notes
+- La auditoría no garantiza entrega: no hay outbox transaccional, los eventos viven en una cola en memoria de 5.000 por defecto y, si se llena, se descartan y se incrementa el contador `dropped` (fuente: `AuditQueue.java`, `AuditProperties.java`).
+- `AuditSender` envía a `POST {url}/api/tesoreria/auditoria/evento/lote` con header `X-API-Key`; descarta el lote ante `400`, `401`, `403` o `422`, reintenta otros estados y errores de red hasta `max-attempts` (10 por defecto) y, si `url` o `api-key` están vacías, deja los eventos en la cola (fuente: `AuditSender.java`).
+- Por defecto no se auditan las lecturas (`access-events: false`); sólo se capturan paths que empiezan con `/api/tesoreria/mercadopago` y se excluyen los que contienen `/actuator` o `/error` (fuente: `AuditRequestFilter.java`, `AuditProperties.java`).
+
+## [0.12.1] - 2026-10-23
+
+### Changed
+- chore(deps): Spring Boot 4.1.1 → 4.1.2 y Spring Cloud 2025.1.3 → 2025.1.4 (`spring-cloud.version`) (fuente: `pom.xml`, `git diff HEAD`).
+- build(jacoco): `jacoco-maven-plugin` 0.8.13 → 0.8.15 (fuente: `pom.xml`, `git diff HEAD`).
+- fix(discovery): `spring.cloud.consul.discovery.query-passing: true` para que Feign/LoadBalancer resuelvan solo instancias con los checks en `passing`. El valor por defecto de la propiedad es `false` en `spring-cloud-consul-discovery` 5.0.4 (Spring Cloud 2025.1.4), por lo que se trata de un cambio de comportamiento en el descubrimiento (fuente: `bootstrap.yml`, metadatos de configuración de `spring-cloud-consul-discovery-5.0.4.jar`).
+- chore(config): se eliminan `spring.kafka.producer.key-serializer` y `value-serializer` de `bootstrap.yml` porque `KafkaConfiguration` ya define `StringSerializer` y `JacksonJsonSerializer` en su `ProducerFactory` propio (con `setAddTypeInfo(false)`), manteniendo el tópico `payment-processed`, la clave `paymentId`, `acks=all` y `retries=3`; el auto-configurado de Spring Boot no se usa al existir `ProducerFactory`/`KafkaTemplate` propios (fuente: `src/main/resources/bootstrap.yml`, `KafkaConfiguration.java`, `KafkaContractTest.java`, `git diff HEAD`).
+
 ## [0.12.0] - 2026-10-22
 
 ### Added

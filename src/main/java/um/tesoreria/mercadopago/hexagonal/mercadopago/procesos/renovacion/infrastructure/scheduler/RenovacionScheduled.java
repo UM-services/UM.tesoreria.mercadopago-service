@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import um.tesoreria.mercadopago.audit.AuditEventPublisher;
 import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.renovacion.domain.ports.in.RenovarVencimientosUseCase;
 
 /**
@@ -19,6 +20,7 @@ import um.tesoreria.mercadopago.hexagonal.mercadopago.procesos.renovacion.domain
 public class RenovacionScheduled {
 
     private final RenovarVencimientosUseCase renovarVencimientosUseCase;
+    private final AuditEventPublisher audit;
 
     @Value("${app.renovacion.lookback-dias:3}")
     private int lookbackDias;
@@ -27,10 +29,15 @@ public class RenovacionScheduled {
             zone = "${app.renovacion.zone:America/Argentina/Mendoza}")
     public void renovarVencimientos() {
         log.info("Iniciando renovacion de enlaces de pago vencidos (lookback {} dias)", lookbackDias);
+        long started = System.currentTimeMillis();
         try {
             renovarVencimientosUseCase.ejecutar(lookbackDias, false);
+            audit.publishScheduled("renovacion-vencimientos", "OK",
+                    System.currentTimeMillis() - started, null);
         } catch (Exception e) {
             log.error("La renovacion de vencimientos fallo", e);
+            audit.publishScheduled("renovacion-vencimientos", "ERROR",
+                    System.currentTimeMillis() - started, e);
         }
     }
 
