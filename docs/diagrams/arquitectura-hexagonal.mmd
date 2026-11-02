@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph Procesos["procesos - orquestacion"]
+        direction LR
+        PCH["checking"]
+        PQU["chequera"]
+        PPA["pago"]
+        PCU["preferenciaCuota"]
+        PVA["preferenciaVacante"]
+        PRR["renovacion"]
+    end
+
+    subgraph Datos["datos - tesoreria-core-service"]
+        direction LR
+        DCH["chequeraCuota"]
+        DCX["contexto"]
+        DTC["tipoChequeraTarjeta"]
+    end
+
+    subgraph Gateways["gateways - salidas"]
+        direction LR
+        GMP["mercadoPago"]
+        GMS["mensajeria"]
+    end
+
+    subgraph Shared["shared - kernel compartido"]
+        direction LR
+        SDM["domain/model"]
+        SAS["application/service"]
+        SDT["infrastructure/dto y mappers"]
+    end
+
+    Procesos -->|"puertos in/out"| Datos
+    Procesos -->|"puertos in/out"| Gateways
+    Datos -->|"modelo y DTOs"| Shared
+    Gateways -->|"modelo y DTOs"| Shared
+    Procesos -->|"modelo y servicios comunes"| Shared
+
+    Regla["Cada slice: domain - application - infrastructure. shared no depende de datos, gateways ni procesos."]
+    Test["ArquitecturaHexagonalTest verifica la regla de dependencias"]

@@ -3,37 +3,38 @@ sequenceDiagram
 
     actor Usuario
     participant Frontend as "Interfaz de Usuario"
-    participant ChequeraCtrl as "ChequeraController"
-    participant ChequeraSvc as "ChequeraService"
-    participant CoreClient as "MercadoPagoCoreClient"
-    participant CoreSvc as "tesoreria-core-service"
-    participant PrefCuotaSvc as "PreferenceCuotaService"
+    participant Ctrl as "ChequeraController"
+    participant Svc as "ChequeraService"
+    participant Bulk as "CrearContextosChequeraBulkUseCase"
+    participant CtxSvc as "ContextoService"
+    participant Core as "tesoreria-core-service"
+    participant PrefSvc as "PreferenciaCuotaService"
     participant MP_API as "API de Mercado Pago"
 
     Usuario->>Frontend: 1. Solicita crear preferencias para una chequera
-    Frontend->>ChequeraCtrl: 2. GET /chequera/create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}
-    ChequeraCtrl->>ChequeraSvc: 3. createChequeraContextBulk(...)
+    Frontend->>Ctrl: 2. GET /chequera/create/context/bulk/{facultadId}/{tipoChequeraId}/{chequeraSerieId}/{alternativaId}
+    Ctrl->>Svc: 3. createChequeraContextBulk(...)
+    Svc->>Bulk: 4. crear(...)
+    Bulk->>CtxSvc: 5. crearContextosChequera(...)
+    CtxSvc->>Core: 6. GET /makeContextsChequera/...
+    Core-->>CtxSvc: 7. Contextos con cuota pendiente
+    CtxSvc-->>Bulk: 8. List de ContextoConCuota
 
-    ChequeraSvc->>CoreClient: 4. makeContextsChequera(facultadId, tipoChequeraId, chequeraSerieId, alternativaId)
-    CoreClient->>CoreSvc: 5. GET /api/tesoreria/core/mercadopago/makeContextsChequera/...
-    CoreSvc-->>CoreClient: 6. List of UMPreferenceMPDto
-    CoreClient-->>ChequeraSvc: 7. coreContexts
-
-    loop Para cada contexto en coreContexts
-        ChequeraSvc->>PrefCuotaSvc: 8. createPreference(umPreferenceMPDto)
-        PrefCuotaSvc->>MP_API: 9. POST /checkout/preferences
-        MP_API-->>PrefCuotaSvc: 10. init_point, preferenceId
-        PrefCuotaSvc-->>ChequeraSvc: 11. MercadoPagoContext actualizado
-        Note right of ChequeraSvc: Acumula contextos para update batch
+    loop Para cada contexto con cuota
+        Bulk->>PrefSvc: 9. crear(contexto, cuota)
+        PrefSvc->>MP_API: 10. POST /checkout/preferences si es nueva
+        MP_API-->>PrefSvc: 11. init_point, preferenceId
+        PrefSvc-->>Bulk: 12. Contexto actualizado en memoria
+        Note right of Bulk: Acumula contextos sin persistir
     end
 
     alt Hay contextos para actualizar
-        ChequeraSvc->>CoreClient: 12. updateContexts(contextsToUpdate)
-        CoreClient->>CoreSvc: 13. PUT /api/tesoreria/core/mercadopago/updateContexts
-        CoreSvc-->>CoreClient: 14. List of MercadoPagoContextDto
-        CoreClient-->>ChequeraSvc: 15. Contextos actualizados
+        Bulk->>CtxSvc: 13. actualizarTodos(contextos)
+        CtxSvc->>Core: 14. PUT /updateContexts en una sola llamada
+        Core-->>CtxSvc: 15. Contextos actualizados
     end
 
-    ChequeraSvc-->>ChequeraCtrl: 16. List of UMPreferenceMPDto
-    ChequeraCtrl-->>Frontend: 17. Responde con datos de preferencias
-    Frontend->>Usuario: 18. Redirige a URLs de Mercado Pago
+    Bulk-->>Svc: 16. List de ContextoConCuota
+    Svc-->>Ctrl: 17. List de ContextoConCuota
+    Ctrl-->>Frontend: 18. List de UMPreferenceMPDto
+    Frontend->>Usuario: 19. Redirige a las URLs de pago

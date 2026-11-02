@@ -1,0 +1,24 @@
+sequenceDiagram
+    title Captura y envío de eventos de auditoría
+
+    participant Cliente
+    participant Filter as "AuditRequestFilter"
+    participant Ctx as "AuditContext"
+    participant Svc as "Casos de uso / PagoService / Scheduler"
+    participant Pub as "AuditEventPublisher"
+    participant Queue as "AuditQueue"
+    participant Sender as "AuditSender"
+    participant Audit as "tesoreria-auditoria"
+
+    Cliente->>Filter: POST /api/tesoreria/mercadopago/payment/listener
+    Filter->>Ctx: set(correlationId, actor, ip, endpoint)
+    Filter->>Svc: doFilter
+    Svc->>Pub: publishNotification(...)
+    Pub->>Queue: offer(evento REQUEST/ACCESS)
+    Filter->>Queue: offer(evento REQUEST del request)
+    Filter->>Ctx: clear()
+    loop cada sender-delay-ms
+        Sender->>Queue: drain(batch-size)
+        Sender->>Audit: POST /api/tesoreria/auditoria/evento/lote con X-API-Key
+        Audit-->>Sender: accepted / rejected[index]
+    end

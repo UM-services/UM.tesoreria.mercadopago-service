@@ -3,24 +3,37 @@ sequenceDiagram
 
     actor Usuario
     participant Frontend as "Interfaz de Usuario"
-    participant CuotaController as "PreferenceCuotaController"
-    participant CuotaService as "PreferenceCuotaService"
-    participant PrefService as "PreferenceService (hexagonal)"
+    participant Ctrl as "PreferenceCuotaController"
+    participant Svc as "PreferenciaCuotaService"
+    participant Crear as "CrearPreferenciaCuotaUseCase"
+    participant Builder as "PreferenciaRequestBuilder"
+    participant MPSvc as "MercadoPagoService"
     participant MP_API as "API de Mercado Pago"
+    participant CtxSvc as "ContextoService"
+    participant Core as "tesoreria-core-service"
 
     Usuario->>Frontend: 1. Selecciona chequera a pagar
-    Frontend->>CuotaController: 2. POST /api/tesoreria/mercadopago/preference/create
-    CuotaController->>CuotaService: 3. createPreference(dto)
-    
-    CuotaService->>PrefService: 4. buildPreferenceRequest(dto, tipoChequeraContext, false)  // con restricciones
-    PrefService->>PrefService: 5. Crea item, payer, paymentMethods
-    PrefService-->>CuotaService: 6. PreferenceRequest
-    
-    CuotaService->>PrefService: 7. createAndLogPreference(request, context)
-    PrefService->>MP_API: 8. POST /checkout/preferences
-    MP_API-->>PrefService: 9. init_point, preferenceId
-    
-    PrefService-->>CuotaService: 10. MercadoPagoContext actualizado
-    CuotaService-->>CuotaController: 11. MercadoPagoContextDto
-    CuotaController-->>Frontend: 12. Responde con datos de preferencia
-    Frontend->>Usuario: 13. Redirige a URL de Mercado Pago
+    Frontend->>Ctrl: 2. POST /api/tesoreria/mercadopago/preference/create
+    Ctrl->>Svc: 3. crearYGuardar(contexto, cuota)
+    Svc->>Svc: 4. Determina si requiere persistencia
+    Svc->>Crear: 5. crear(contexto, cuota)
+
+    alt initPoint existente y changed == 1
+        Crear->>MPSvc: 6. recuperar y actualizar la preferencia
+    else initPoint existente y changed == 0
+        Crear-->>Svc: 6. Retorna el contexto sin cambios
+    else Preferencia nueva
+        Crear->>Builder: 6. construirParaCuota(contexto, cuota, tipo)
+        Builder-->>Crear: 7. SolicitudPreferencia
+        Crear->>MPSvc: 8. crear(solicitud)
+        MPSvc->>MP_API: 9. POST /checkout/preferences
+        MP_API-->>MPSvc: 10. init_point, preferenceId
+        MPSvc-->>Crear: 11. PreferenciaMercadoPago
+        Crear->>Crear: 12. Actualiza el contexto en memoria
+    end
+
+    Note over Svc,CtxSvc: Solo persiste si la preferencia se creó o cambió
+    Svc->>CtxSvc: 13. actualizar(contexto)
+    CtxSvc->>Core: 14. PUT /updateContext/{id}
+    Ctrl-->>Frontend: 15. MercadoPagoContextDto
+    Frontend->>Usuario: 16. Redirige a la URL de pago

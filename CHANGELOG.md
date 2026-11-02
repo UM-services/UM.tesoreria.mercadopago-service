@@ -2,6 +2,128 @@
 
 Todos los cambios notables en este proyecto serán documentados en este archivo.
 
+## [0.13.1] - 2026-10-28
+
+### Fixed
+- fix(kafka): La dependencia `spring-kafka` se reemplaza por `spring-boot-starter-kafka`. En Spring Boot 4 la auto-configuración de Kafka vive en el módulo `spring-boot-kafka` (paquete `org.springframework.boot.kafka.autoconfigure`); sin ese módulo no hay bean `KafkaAdmin` y los `NewTopic` de `KafkaTopicsConfiguration` no se aplicaban, por lo que `tesoreria-audit-evento` no quedaba con las 3 particiones declaradas. Nuevo `KafkaAutoconfiguracionTest` verifica que `KafkaAutoConfiguration` y `KafkaProperties` estén en el classpath (fuente: `pom.xml`, `KafkaAutoconfiguracionTest.java`, `spring-boot-kafka` de Boot 4.1.2).
+- fix(config): `spring.kafka.bootstrap-servers` pasa a `${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:9092}`; la variable ya estaba documentada en el README pero no estaba cableada, así que sólo se usaba el valor fijo `kafka:9092` (fuente: `src/main/resources/bootstrap.yml`, `README.md`).
+- fix(kafka): `paymentProducerFactory` deja de declarar `key.serializer` y `value.serializer` en el mapa de propiedades porque las instancias (`StringSerializer` y `JacksonJsonSerializer` con `addTypeInfo=false`) ya se pasan al constructor de `DefaultKafkaProducerFactory`; `KafkaContractTest` ahora verifica que `VALUE_SERIALIZER_CLASS_CONFIG` no esté en las props y que el serializer no agregue `__TypeId__` (fuente: `KafkaConfiguration.java`, `KafkaContractTest.java`).
+
+### Changed
+- chore(config): `spring.kafka.admin.fail-fast: true` y `spring.kafka.admin.modify-topic-configs: true` en `bootstrap.yml`. La declaración de topics falla el arranque si el broker no responde, y `modify-topic-configs` aplica las configuraciones declaradas sobre topics existentes (retención, `cleanup.policy`, `min.insync.replicas`); las particiones se incrementan sólo si el topic existente tiene menos de las declaradas y el replication factor nunca se reasigna (fuente: `bootstrap.yml`, `KafkaTopicsConfiguration.java`, `docs/auditoria-mercadopago.md`).
+- test(config): `src/test/resources/bootstrap.yml` fija `spring.kafka.admin.fail-fast: false` y `MercadoPagoApplicationTests` excluye `KafkaAutoConfiguration`, para que la suite corra sin broker (fuente: `src/test/resources/bootstrap.yml`, `MercadoPagoApplicationTests.java`).
+
+### Notes
+- Con `spring.kafka.admin.fail-fast: true` el servicio requiere un broker Kafka accesible al arrancar; en local hay que levantar Kafka o desactivar esa propiedad (fuente: `bootstrap.yml`, `KafkaProperties.Admin`).
+
+## [0.13.0] - 2026-10-28
+
+### Added
+- feat(audit): Nuevo paquete `um.tesoreria.mercadopago.audit` con `AuditRequestFilter` (`OncePerRequestFilter` en `Ordered.HIGHEST_PRECEDENCE + 10`), `AuditContext` (`ThreadLocal` con `correlationId`, actor, IP, método y endpoint), `AuditEventPublisher`, `AuditEventPayload`, `AuditProperties`, `AuditQueue` (`ArrayBlockingQueue` acotada con contador `dropped`), `AuditSender` (lotes por `RestClient`) y `PreferenceSnapshot` (fuente: `src/main/java/um/tesoreria/mercadopago/audit/**`).
+- feat(audit): Eventos `CHANGE` sobre la entidad `MercadoPagoPreference`: `INSERT` al crear la preferencia, `UPDATE` con `changedFields`, `beforeData` y `afterData` sólo si el diff de `PreferenceSnapshot` no está vacío, y `ERROR` ante fallo o preferencia inexistente. Instrumentado en `CrearPreferenciaCuotaUseCaseImpl`, `ActualizarPreferenciaCuotaUseCaseImpl` y `CrearPreferenciaVacanteUseCaseImpl` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/preferencia*/**`, `PreferenceSnapshot.java`).
+- feat(audit): Eventos `REQUEST/ACCESS` sobre `MercadoPagoNotification` para **todas** las notificaciones de pago, incluidas las rechazadas: webhook v1 (`WEBHOOK_V1`), IPN legacy (`IPN_LEGACY`) y replay manual (`MANUAL`), con estado, `paymentId`, presencia de `x-signature`/`x-request-id` y mensaje. Las excepciones del replay manual se auditan como `ERROR` y se propagan (fuente: `PagoService.java`, `PagoServiceTest.java`).
+- feat(audit): Eventos `REQUEST/ACCESS` de los jobs programados `checking-all-active` y `renovacion-vencimientos` con `durationMs` y `outcome` `OK`/`ERROR`; en `checking-all-active` la excepción se audita y se vuelve a lanzar (fuente: `CheckingScheduled.java`, `RenovacionScheduled.java`).
+- feat(kafka): Nueva `KafkaTopicsConfiguration` que declara los topics propios: `payment-processed` (`app.kafka.topics.partitions|replicas`) y `tesoreria-audit-evento` (3 particiones por defecto, `retention.ms` 7 días, `retention.bytes` 1 GiB por partición, `cleanup.policy=delete`, `min.insync.replicas` acotado a 2 según el RF) (fuente: `KafkaTopicsConfiguration.java`, `KafkaTopicsConfigurationTest.java`, `bootstrap.yml`).
+- feat(config): Nuevas propiedades `tesoreria.audit.*` (modo `OFF|LOG|SEND`, eventos de request/change/access, URL y API key del servicio, tamaño de cola y de lote, intentos, delays del sender, prefijos incluidos y topic/particiones de auditoría) y `app.kafka.topics.*`, todas con override por entorno `TESORERIA_AUDIT_*` / `APP_KAFKA_TOPIC_*` (fuente: `bootstrap.yml`, `AuditProperties.java`).
+- test(audit): Nuevos `AuditQueueTest`, `AuditRequestFilterTest`, `KafkaTopicsConfigurationTest` y `PagoServiceTest`; `PreferenciaCuotaUseCasesTest` y `CrearPreferenciaVacanteUseCaseImplTest` verifican los eventos de creación, actualización y fallo (fuente: `src/test/java/um/tesoreria/mercadopago/**`).
+- docs: Nueva guía `docs/auditoria-mercadopago.md` y diagrama `docs/diagrams/flujo-auditoria.mmd`, registrado en `generate-docs.yml` con el mismo escapado previo a `innerHTML` que el resto de los diagramas; `despliegue.mmd` suma el servicio `tesoreria-auditoria` como destino de los lotes (fuente: `docs/auditoria-mercadopago.md`, `docs/diagrams/flujo-auditoria.mmd`, `docs/diagrams/despliegue.mmd`, `.github/workflows/generate-docs.yml`).
+
+### Changed
+- chore(config): `src/test/resources/bootstrap.yml` fija `tesoreria.audit.mode: OFF` para que los tests no encolen ni logueen intentos de envío (fuente: `src/test/resources/bootstrap.yml`).
+- chore(config): `app.kafka.topics.partitions` y `app.kafka.topics.replicas` quedan en `1` por defecto (`APP_KAFKA_TOPIC_PARTITIONS`, `APP_KAFKA_TOPIC_REPLICAS`); el factor de replicación es ambiental y no se reaplica sobre un topic existente (fuente: `bootstrap.yml`, `KafkaTopicsConfiguration.java`).
+
+### Notes
+- La auditoría no garantiza entrega: no hay outbox transaccional, los eventos viven en una cola en memoria de 5.000 por defecto y, si se llena, se descartan y se incrementa el contador `dropped` (fuente: `AuditQueue.java`, `AuditProperties.java`).
+- `AuditSender` envía a `POST {url}/api/tesoreria/auditoria/evento/lote` con header `X-API-Key`; descarta el lote ante `400`, `401`, `403` o `422`, reintenta otros estados y errores de red hasta `max-attempts` (10 por defecto) y, si `url` o `api-key` están vacías, deja los eventos en la cola (fuente: `AuditSender.java`).
+- Por defecto no se auditan las lecturas (`access-events: false`); sólo se capturan paths que empiezan con `/api/tesoreria/mercadopago` y se excluyen los que contienen `/actuator` o `/error` (fuente: `AuditRequestFilter.java`, `AuditProperties.java`).
+
+## [0.12.1] - 2026-10-23
+
+### Changed
+- chore(deps): Spring Boot 4.1.1 → 4.1.2 y Spring Cloud 2025.1.3 → 2025.1.4 (`spring-cloud.version`) (fuente: `pom.xml`, `git diff HEAD`).
+- build(jacoco): `jacoco-maven-plugin` 0.8.13 → 0.8.15 (fuente: `pom.xml`, `git diff HEAD`).
+- fix(discovery): `spring.cloud.consul.discovery.query-passing: true` para que Feign/LoadBalancer resuelvan solo instancias con los checks en `passing`. El valor por defecto de la propiedad es `false` en `spring-cloud-consul-discovery` 5.0.4 (Spring Cloud 2025.1.4), por lo que se trata de un cambio de comportamiento en el descubrimiento (fuente: `bootstrap.yml`, metadatos de configuración de `spring-cloud-consul-discovery-5.0.4.jar`).
+- chore(config): se eliminan `spring.kafka.producer.key-serializer` y `value-serializer` de `bootstrap.yml` porque `KafkaConfiguration` ya define `StringSerializer` y `JacksonJsonSerializer` en su `ProducerFactory` propio (con `setAddTypeInfo(false)`), manteniendo el tópico `payment-processed`, la clave `paymentId`, `acks=all` y `retries=3`; el auto-configurado de Spring Boot no se usa al existir `ProducerFactory`/`KafkaTemplate` propios (fuente: `src/main/resources/bootstrap.yml`, `KafkaConfiguration.java`, `KafkaContractTest.java`, `git diff HEAD`).
+
+## [0.12.0] - 2026-10-22
+
+### Added
+- feat(pago): El evento `payment-processed` incorpora `source` (`WEBHOOK_V1` | `IPN_LEGACY` | `MANUAL`) y `dateLastUpdated` (el `date_last_updated` del pago en Mercado Pago). Nuevo enum `OrigenNotificacion` y parámetro `origen` en `RecuperarYPublicarPagoUseCase`; `PagoMapper` mapea `Payment.getDateLastUpdated()` (sdk 3.7.0) (fuente: `OrigenNotificacion.java`, `PagoProcesadoEvento.java`, `PaymentProcessedEvent.java`, `PagoProcesadoMapper.java`, `RecuperarYPublicarPagoUseCaseImpl.java`, `PagoMapper.java`).
+- feat(pago): Propiedad `app.webhook.legacy-ipn-enabled` (env `APP_WEBHOOK_LEGACY_IPN_ENABLED`, default `false`). Con el fallback apagado el IPN legacy responde `200` "Notificación legacy ignorada" (ack sin reintentos de MP) y no publica; con `true` procesa y publica con `source=IPN_LEGACY`. Nuevo estado `EstadoWebhookPago.LEGACY_IGNORADA` mapeado a `200` (fuente: `ProcesarWebhookPagoUseCaseImpl.java`, `EstadoWebhookPago.java`, `PaymentController.java`, `bootstrap.yml`, `README.md`).
+- feat(tests): Cobertura del origen en `RecuperarYPublicarPagoUseCaseImplTest` (incluye `MANUAL`) y del flag legacy en `ProcesarWebhookPagoUseCaseImplTest`/`PaymentControllerTest`; `KafkaContractTest`/`WireFormatContractTest` actualizados con los campos nuevos.
+- feat(pago): Propiedad `app.webhook.signature-validation` (env `APP_WEBHOOK_SIGNATURE_VALIDATION`, default `true`). En `false` el listener procesa la notificación aunque la firma falte o no coincida (modo permisivo para entornos de prueba) y deja una traza informativa con `ts`, prefijo de `v1` y huella SHA-256 del secret en uso (fuente: `ProcesarWebhookPagoUseCaseImpl.java`, `bootstrap.yml`, `README.md`).
+- feat(pago): `MercadoPagoClientAdapter` loguea `status` y `response` (truncado a 1000 caracteres) ante errores HTTP de Mercado Pago al recuperar pagos y preferencias (fuente: `MercadoPagoClientAdapter.java`).
+- feat(renovacion): Nuevo slice `procesos/renovacion` con `RenovarVencimientosUseCase`: recorre por paginas (keyset) los contextos activos cuyo vencimiento publicado cayo en las ultimas 72 h y publica el vencimiento siguiente en Mercado Pago. Devuelve un resumen con escaneados/actualizados/creados/sinCambios/fallidos y duracion (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/renovacion/**`).
+- feat(renovacion): Nuevo scheduler `RenovacionScheduled` a las **00:30** `America/Argentina/Mendoza`, configurable con `app.renovacion.*` y desactivable con `app.renovacion.enabled=false` (fuente: `RenovacionScheduled.java`, `bootstrap.yml`).
+- feat(renovacion): Endpoint manual `POST /api/tesoreria/mercadopago/renovacion/run` con body `{"lookbackDias":3,"dryRun":true}` (sin query params) para validar la seleccion sin tocar Mercado Pago ni el core (fuente: `RenovacionController.java`, `SolicitudRenovacion.java`).
+- feat(persistencia): Nuevo puerto `actualizarPreferencia` / `marcarChanged` que persiste solo los campos de la preferencia (`fechaVencimiento`, `importe`, `initPoint`, `preferenceId`, `preference`, `changed`, `lastVencimientoUpdated`) via `PATCH /mercadopago/updateContext/{id}/preferencia`, sin pisar datos de pago (fuente: `ContextoRepository.java`, `ContextoClientAdapter.java`).
+- feat(tests): `RenovarVencimientosUseCaseImplTest` cubre dryRun, actualizacion, recreacion de preferencia inexistente, fallo con reintento, sin cambios y paginacion (fuente: `src/test/java/.../procesos/renovacion/**`).
+- feat(persistencia): `ContextoMercadoPago`, `MercadoPagoContextDto` y `ContextoMercadoPagoDtoMapper` incorporan `dateLastUpdated` del pago para reenviarlo al core sin borrarlo en los `PUT` completos (fuente: `ContextoMercadoPago.java`, `MercadoPagoContextDto.java`, `ContextoMercadoPagoDtoMapper.java`).
+- docs: Nuevo `docs/idempotencia-payment-processed.md` con la guia operativa cross-repo (core, umhub y este productor) para habilitar la idempotencia end-to-end, enlazado desde el README.
+
+### Changed
+- refactor(webhook): El listener de pagos ahora responde `401` ante firma faltante o inválida, `400` ante `data.id` faltante/inválido y `502` cuando no se pudo recuperar el pago, para que Mercado Pago reintente; antes respondía `200` en todos los casos. Se agrega fallback de IPN legacy (`?id=<paymentId>&topic=payment`) y las notificaciones `topic=merchant_order` se acknowledgean con `200` e ignoran (fuente: `PaymentController.java`, `ProcesarWebhookPagoUseCaseImpl.java`, `HttpContractTest.java`).
+- refactor(checking): `ChequearTodasUseCaseImpl` omite los contextos sin `chequeraCuotaId`, aisla cada item con `try/catch` y loguea un resumen (antes el primer contexto de reserva de vacante abortaba la corrida completa) (fuente: `ChequearTodasUseCaseImpl.java`).
+- refactor(checking): `ChequearCuotaUseCaseImpl` persiste solo si la preferencia es nueva o si el core marco `changed = 1`, igual que `PreferenciaCuotaService.crearYGuardar` (fuente: `ChequearCuotaUseCaseImpl.java`).
+- refactor(checking): El barrido legado de 90 dias queda marcado `@Deprecated` (scheduler, `ChequearTodasUseCase`, `/checking/all/active`, `ContextoQueryClient`, `getActivosParaCambiar`) y deshabilitado por defecto (`app.checking.legacy-scheduler.enabled=false`); lo reemplaza `RenovacionScheduled`. Se mantiene `GET /checking/cuota/{id}` como herramienta manual (fuente: `CheckingScheduled.java`, `ChequearTodasUseCase.java`, `CheckingController.java`, `bootstrap.yml`).
+- chore(config): Nuevas propiedades `app.renovacion.enabled|cron|zone|lookback-dias|page-size|max-fallidos-detalle` (fuente: `bootstrap.yml`).
+- chore(config): Consul usa `/actuator/health/readiness` como health check y poda la instancia si queda critica a los 5 minutos (`health-check-critical-timeout: 5m`) (fuente: `bootstrap.yml`).
+- fix(seguridad): `FirmaWebhook.validar` rechaza entradas nulas y compara el HMAC con `MessageDigest.isEqual` (tiempo constante); `ReferenciaExterna.parse` devuelve `null` ante una referencia externa vacia en lugar de fallar (fuente: `FirmaWebhook.java`, `FirmaWebhookTest.java`, `ReferenciaExterna.java`).
+- refactor(preferenciaCuota): `ActualizarPreferenciaCuotaUseCase` acepta la `ChequeraCuota` ya cargada para no volver a pedirla al core (fuente: `ActualizarPreferenciaCuotaUseCase.java`, `ActualizarPreferenciaCuotaUseCaseImpl.java`, `CrearPreferenciaCuotaUseCaseImpl.java`).
+- chore(deps): SDK Java de Mercado Pago 3.2.1 → 3.7.0 (aporta `Payment.getDateLastUpdated()`), springdoc-openapi 3.0.3 → 3.1.1, commons-lang3 3.20.0 → 3.21.0, plexus-utils 4.0.3 → 4.1.0 y pin explicito de gson 2.14.0 (el BOM de Spring Boot lo resolvia a 2.13.2) (fuente: `pom.xml`).
+
+## [0.11.0] - 2026-10-20
+
+### Added
+- feat(hexagonal): Migración completa al slice único `um.tesoreria.mercadopago.hexagonal.mercadopago` con los subpaquetes `datos` (`chequeraCuota`, `contexto`, `tipoChequeraTarjeta`), `gateways` (`mercadoPago`, `mensajeria`), `procesos` (`checking`, `chequera`, `pago`, `preferenciaCuota`, `preferenciaVacante`) y `shared` (modelo, servicios, DTOs y mappers). Cada slice declara `domain/model`, `domain/ports/in`, `domain/ports/out`, `application/usecases` e `infrastructure` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/**`, `git diff HEAD`)
+- feat(datos): Nuevos puertos de salida `ContextoRepository`, `ChequeraCuotaRepository` y `TipoChequeraTarjetaRepository`, implementados por `ContextoClientAdapter`, `ChequeraCuotaClientAdapter` y `TipoChequeraTarjetaClientAdapter` sobre los clientes Feign `ContextoCoreClient`, `ContextoQueryClient`, `ChequeraCuotaClient` y `TipoChequeraMercadoPagoCreditCardClient` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/datos/**`, `git diff HEAD`)
+- feat(gateways): `MercadoPagoService` expone los casos de uso `CrearPreferenciaUseCase`, `ActualizarPreferenciaUseCase`, `RecuperarPreferenciaUseCase` y `RecuperarPagoUseCase` sobre el SDK 3.2.1, con los mappers `PreferenciaMapper`, `PagoMapper` y `SolicitudPreferenciaMapper` y la excepción `MercadoPagoException` (status + respuesta de la API) (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/gateways/mercadoPago/**`, `git diff HEAD`)
+- feat(mensajeria): `MensajeriaService`, `PublicarPagoProcesadoUseCaseImpl` y `PaymentEventProducerAdapter` publican `PagoProcesadoEvento` en el tópico `payment-processed` usando `paymentId` como clave (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/gateways/mensajeria/**`, `KafkaContractTest.java`, `git diff HEAD`)
+- feat(shared): Nuevo modelo de dominio `ContextoMercadoPago`, `ChequeraCuota`, `PreferenciaMercadoPago`, `PagoMercadoPago`, `ReservaVacante`, `SolicitudPreferencia`, `TipoChequeraTarjeta`, `ItemPreferencia`, `PagadorPreferencia`, `MediosPagoPreferencia`, `UrlsRetornoPreferencia` y `ContextoConCuota`, junto con `PreferenciaRequestBuilder` y `FechasMercadoPago` como servicios compartidos (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/shared/**`, `git diff HEAD`)
+- feat(pago): La verificación de firma del webhook se modela en dominio con `CabecerasWebhook`, `ComponentesFirma` y `FirmaWebhook`, y la referencia externa con `ReferenciaExterna.parse(...)` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/pago/domain/model/**`, `WireFormatContractTest.java`, `git diff HEAD`)
+- test(contrato): Nuevos tests `ArquitecturaHexagonalTest`, `HttpContractTest` (9 endpoints), `FeignClientsContractTest`, `KafkaContractTest`, `PreferenceRequestContractTest`, `SchedulingContractTest` y `WireFormatContractTest`, además de tests por caso de uso en `hexagonal/**` (fuente: `src/test/java/um/tesoreria/mercadopago/**`, `git diff HEAD`)
+
+### Changed
+- refactor(paquetes): Eliminados los paquetes `client`, `controller`, `service`, `domain`, `producer`, `scheduled`, `util` y `hexagonal.preference`; `MercadoPagoApplication` conserva el escaneo base `um.tesoreria.mercadopago` (fuente: `git status`, `ArquitecturaHexagonalTest.losPaquetesLegadosYaNoExisten`)
+- refactor(config): `@EnableFeignClients` ahora escanea `um.tesoreria.mercadopago.hexagonal` en lugar de `um.tesoreria.mercadopago.client` (fuente: `src/main/java/um/tesoreria/mercadopago/configuration/MercadoPagoConfiguration.java`, `git diff HEAD`)
+- refactor(persistencia): `CrearPreferenciaCuotaUseCaseImpl` y `ActualizarPreferenciaCuotaUseCaseImpl` dejaron de escribir en el core; la persistencia queda a cargo de `ChequearCuotaUseCaseImpl` (un `updateContext`), `CrearContextosChequeraUseCaseImpl` (un `updateContext` por cuota) y `CrearContextosChequeraBulkUseCaseImpl` (un `updateContexts` batch), mientras que el endpoint `POST /preference/create` usa `PreferenciaCuotaService.crearYGuardar`. El detalle del diseño está en `docs/persistencia-contexto-mercadopago.md` (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/**`, `docs/persistencia-contexto-mercadopago.md`, `git diff HEAD`)
+- refactor(kafka): El productor usa un `JacksonJsonSerializer` explícito con `setAddTypeInfo(false)`, por lo que el evento ya no se publica con el header `__TypeId__`; se conservan el tópico `payment-processed`, la clave `paymentId` y las propiedades `acks=all` y `retries=3` (fuente: `src/main/java/um/tesoreria/mercadopago/configuration/KafkaConfiguration.java`, `KafkaContractTest.java`, `git diff HEAD`)
+- refactor(controller): Los controladores reciben y devuelven DTOs, delegan en los servicios de `procesos` y usan `PreferenciaDtoMapper`/`ContextoMercadoPagoDtoMapper`, manteniendo las mismas rutas y verbos HTTP (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/*/infrastructure/web/controller/**`, `HttpContractTest.java`, `git diff HEAD`)
+- refactor(config): `app.secret-key` pasa a `${app.secret-key:}` para permitir el arranque sin la propiedad; una firma inválida se sigue registrando con `log.warn` y no aborta el webhook (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/pago/application/usecases/ProcesarWebhookPagoUseCaseImpl.java`, `git diff HEAD`)
+
+### Fixed
+- fix(preferencia): `POST /api/tesoreria/mercadopago/preference/create` ahora persiste el contexto cuando llega con `changed == 1`, guardando `changed = 0` y `lastVencimientoUpdated`; antes ese camino no escribía en el core (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/procesos/preferenciaCuota/application/service/PreferenciaCuotaService.java`, `PreferenciaCuotaServiceTest.java`, `git diff HEAD`)
+- fix(persistencia): Los errores del core al persistir se registran (`Error updating context in Core...`) y ya no abortan el flujo de `checking`, chequera individual ni bulk (fuente: `ChequearCuotaUseCaseImpl.java`, `CrearContextosChequeraBulkUseCaseImpl.java`, `docs/persistencia-contexto-mercadopago.md`, `git diff HEAD`)
+- fix(duplicación): Eliminada la doble escritura del contexto al crear una preferencia de cuota (de 2 PUT a 1 PUT en el flujo unitario y de N + 1 escrituras a un único batch en el flujo bulk) (fuente: `docs/persistencia-contexto-mercadopago.md`, `git diff HEAD`)
+
+### Removed
+- refactor: Eliminados `PaymentService`, el `PreferenceService` monolítico, `PaymentEventProducer`, `DateToolMP`, `ChequeraPagoDto` y el test suelto `src/test/java/SignatureTest.java` (fuente: `git status`, `git diff HEAD`)
+- refactor(dto): Los modelos de vacante pasan de `ReservaVacante`/`Campanha` a los DTOs `ReservaVacanteDto`/`CampanhaDto`, y todos los DTOs se reubican en `shared.infrastructure.dto` con mappers dedicados (fuente: `src/main/java/um/tesoreria/mercadopago/hexagonal/mercadopago/shared/infrastructure/**`, `git diff HEAD`)
+
+### Documentation
+- docs: Nuevo `docs/persistencia-contexto-mercadopago.md` con la política de persistencia de contextos y las escrituras por flujo, enlazado desde el README (fuente: `docs/persistencia-contexto-mercadopago.md`, `README.md`, `git diff HEAD`)
+- docs(diagramas): Actualizados los diagramas de secuencia de cuota, vacante y bulk a los nuevos casos de uso; `modelo-datos-core.mmd` elimina `ChequeraPagoDto` y renombra sus entidades a `ReservaVacanteDto` y `CampanhaDto`; nuevo `arquitectura-hexagonal.mmd` registrado en `generate-docs.yml` con escapado del contenido antes de inyectarlo con `innerHTML` (fuente: `docs/diagrams/**`, `.github/workflows/generate-docs.yml`, `git diff HEAD`)
+
+### Breaking Changes
+- Cambian los paquetes de todas las clases: cualquier consumidor Java que importe `um.tesoreria.mercadopago.client`, `.controller`, `.service`, `.domain`, `.producer`, `.scheduled`, `.util` o `.hexagonal.preference` debe migrar a `um.tesoreria.mercadopago.hexagonal.mercadopago.*`.
+- `PaymentProcessedEvent` se mueve a `...gateways.mensajeria.infrastructure.kafka.event` y el contrato Kafka deja de enviar el header `__TypeId__`; los consumidores deben deserializar con el tipo target en lugar de depender del header.
+- Los endpoints REST no cambian de ruta, verbo ni forma de payload.
+
+## [0.10.1] - 2026-10-20
+
+### Added
+- ci(deploy): Nuevos workflows `deploy-develop.yml` y `deploy-staging.yml` que verifican la aplicación con `mvn -B verify`, construyen y publican la imagen Docker etiquetada con el SHA del commit y despliegan en runners self-hosted. El workflow de staging despliega en matriz sobre los entornos `staging` y `staging-new` (fuente: `.github/workflows/deploy-develop.yml`, `.github/workflows/deploy-staging.yml`, `git diff HEAD`)
+
+### Changed
+- chore(deps): Actualización de Spring Boot de 4.1.0 a 4.1.1 (fuente: `pom.xml`, `git diff HEAD`)
+- chore(deps): Actualización de Spring Cloud de 2025.1.2 a 2025.1.3 (fuente: `pom.xml`, `git diff HEAD`)
+
+### Fixed
+- fix(logging): El nivel de log configurado en `bootstrap.yml` ahora aplica al paquete base `um.tesoreria.mercadopago` en lugar del paquete obsoleto `um.tesoreria.mercadopago.service`, restaurando el logging tras la migración de paquetes de la versión 0.7.0 (fuente: `src/main/resources/bootstrap.yml`, `git diff HEAD`)
+- docs(diagramas): `despliegue.mmd` migrado de la sintaxis inválida `deploymentDiagram` a `flowchart TD`; `modelo-datos-core.mmd` ajustado para expresar las relaciones entre DTOs mediante relaciones ER en lugar de atributos de tipo objeto y se eliminó el atributo inexistente `mercadoPagoContextId` de `UMPreferenceMPDto` (fuente: `docs/diagrams/despliegue.mmd`, `docs/diagrams/modelo-datos-core.mmd`, `src/main/java/um/tesoreria/mercadopago/domain/dto/UMPreferenceMPDto.java`, `git diff HEAD`)
+- docs(readme): Corregidas las referencias a Spring Boot (4.1.0 → 4.1.1) para que coincidan con `pom.xml` (fuente: `README.md`, `pom.xml`)
+- docs(changelog): Restaurada la versión de Spring Cloud registrada para la release 0.6.0 (2025.1.2), coherente con el `pom.xml` de esa versión (fuente: `git show 8e5caa6:pom.xml`)
+
 ## [0.10.0] - 2026-07-19
 
 ### Added
